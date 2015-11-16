@@ -25,8 +25,9 @@ public class Cache
 //	another constructor that takes all the needed parameters
 	public Cache(int size, int lineSize, int associativity, int writePolicyParam, int cyclesParam) 
 	{
-		if (lineSize > size || cycles == 0) 
+		if (lineSize > size || cyclesParam == 0) 
 		{
+			System.out.println(size + " " + lineSize + " " + associativity + " " + writePolicyParam + " " + cyclesParam);
 			System.out.println("Error. Parameters are not correct");
 			return;
 		}
