@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 // this class handles the processor functions and contains all the processor registers
@@ -29,6 +32,57 @@ public class Processor {
 	public int[] allRegisters()
 	{
 		return register;
+	}
+	
+	public static void main(String[] args) 
+	{
+		
+		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+		
+		System.out.println("What is the number of caches");
+		
+//		take the number of caches first
+		int numberOfCaches;
+		try {
+			numberOfCaches = Integer.parseInt(bf.readLine());
+		} catch (Exception e) 
+		{
+			System.out.println("Input error");
+			e.printStackTrace();
+			return;
+		}
+		
+		System.out.println("Now for every cache what are the parameters?");
+		System.out.println("Format: Size,Line Size, Associativity");
+		
+//		use the number of caches given in the first line to create multiple caches with the given structure
+		for (int i = 0; i < numberOfCaches; i++) 
+		{
+			String[] line;
+			try {
+//				input structure assumed is
+//				int,int,int NOT (int,int,int)
+				
+//				clear all spaces
+				line = bf.readLine().replaceAll("\\s","").split(",");
+
+				int [] parsedLine = new int [line.length];
+				for (int j = 0; j < line.length; j++) 
+				{
+					parsedLine[j] = Integer.parseInt(line[j]);
+				}
+				cacheLevel.add(new Cache(parsedLine[0], parsedLine[1], parsedLine[2]));
+				
+			} catch (IOException e) {
+				System.out.println("Error when reading cache line");
+				e.printStackTrace();
+			}
+		}
+		
+//		add the memory level after all caches are created
+		System.out.println("What is the memory access time?");
+		
+		
 	}
 	 
 
