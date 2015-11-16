@@ -1,5 +1,5 @@
 # ignore everything
 .classpath
 .project
-/settings
+/.settings
 /bin/*
