@@ -1,5 +1,2 @@
 # ignore everything
 .classpath
-.project
-/.settings
-/bin/*
