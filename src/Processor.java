@@ -62,6 +62,7 @@ public class Processor {
 			try {
 //				input structure assumed is
 //				int,int,int NOT (int,int,int)
+//				Another format could be used which takes 5 parameters instead of 3
 				
 //				clear all spaces
 				line = bf.readLine().replaceAll("\\s","").split(",");
@@ -71,6 +72,9 @@ public class Processor {
 				{
 					parsedLine[j] = Integer.parseInt(line[j]);
 				}
+				
+//				this will change is the 5 parameter constructor was used
+//				this adds a new cache to the processor's arraylist of caches
 				cacheLevel.add(new Cache(parsedLine[0], parsedLine[1], parsedLine[2]));
 				
 			} catch (IOException e) {
@@ -81,6 +85,16 @@ public class Processor {
 		
 //		add the memory level after all caches are created
 		System.out.println("What is the memory access time?");
+		int memoryTime;
+		try {
+			memoryTime = Integer.parseInt(bf.readLine());
+		} catch (Exception e) {
+			System.out.println("Wrong input");
+			e.printStackTrace();
+			return;
+		}
+		
+		cacheLevel.add(new Cache(64*1024, 16, 1, 0, memoryTime));
 		
 		
 	}

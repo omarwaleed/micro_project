@@ -57,5 +57,10 @@ public class Cache
 	{
 		this.cycles = cycles;
 	}
+	
+	public int[] getContentOf(int index) 
+	{
+		return this.content[index];
+	}
 
 }
