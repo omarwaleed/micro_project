@@ -7,7 +7,7 @@ public class Processor {
 //	Initialize the registers and the cache levels
 //	cache levels will end with the memory level but to be handled after user input
 	private static int[] register = new int[32];
-	private ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
+	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
 
 //	get the value inside a single register
 	public int getRegister(int reg) 
