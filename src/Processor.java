@@ -33,6 +33,98 @@ public class Processor {
 	{
 		return register;
 	}
+	public void writeBackOrThrought(Cache c ,int physicaladdress,int index){
+		String []tmp=c.getContentOf(index);
+		for (int i = 0; i < cacheLevel.size(); i++) {
+			Cache c2=cacheLevel.get(i);
+			if(c2.getAssoc()==1){//direct or set associative
+			int index2=physicaladdress%c.getNoOFBlocks();
+			int tag=physicaladdress/c.getNoOFBlocks();
+			if(c2.getWritePolicy()==0){//write through
+				if(c2.getContent()[index2][c2.getContent()[index2].length-1].equals(String.valueOf(tag))){
+					for (int j = 0; j < c2.getContent()[index].length-1; j++) {
+						c2.getContent()[index2][i]=tmp[i];
+					}
+					
+				}
+				
+			}
+			else{//write back
+				int index21=physicaladdress%c.getNoOFBlocks();
+				int tag1=physicaladdress/c.getNoOFBlocks();
+				if(c2.getWritePolicy()==0){//write through
+					if(c2.getContent()[index21][c2.getContent()[index21].length-2].equals(String.valueOf(tag1))){
+						for (int j = 0; j < c2.getContent()[index].length-2; j++) {
+							c2.getContent()[index21][i]=tmp[i];
+						}
+						
+					}
+				
+				
+			}
+			}}
+			
+			else if(c2.getAssoc()==c2.getNoOFBlocks()){//full associative
+				int index3=-1 ;
+				for (int j = 0; j < c2.getContent().length; j++) {
+					if(c2.getContent()[j][c2.getContent()[j].length-1].equals(String.valueOf(index))){
+						index3=j;
+								break;
+					}
+					
+				}
+				if(c2.getWritePolicy()==0&&index3!=-1){
+					for (int j = 0; j < c2.getContent()[index].length-1; j++) {
+							c2.getContent()[index3][i]=tmp[i];
+						}
+						
+					
+				}
+				
+				else if(index3!=-1){//write back
+					
+					for (int j = 0; j < c2.getContent()[index].length-2; j++) {
+						c2.getContent()[index3][i]=tmp[i];
+					}
+			
+				
+			}
+			
+			
+		}
+			else{//set associative 
+				int set_no=physicaladdress%c2.getAssoc();
+				int tag=physicaladdress/c2.getAssoc();
+				int startBlock=set_no*c2.getNoOFBlocks();
+				int index3=-1;
+			
+				for (int j =0; j < (c2.getNoOFBlocks()/c2.getAssoc()); j++) {
+					if(c2.getContent()[startBlock][c2.getContent()[0].length-1].equals(String.valueOf(tag))){
+						index3=startBlock;break;
+					}
+					++startBlock;
+				}
+				////////////////
+				if(c2.getWritePolicy()==0){
+					for (int j = 0; j < c2.getContent()[startBlock].length-1; j++) {
+						c2.getContent()[startBlock][j]=tmp[j];
+						
+					}
+				}
+				else{
+					for (int j = 0; j < c2.getContent()[startBlock].length-2; j++) {
+						c2.getContent()[startBlock][j]=tmp[j];
+						
+					}
+					
+				}
+				///////////////////////
+				
+				
+			}
+		}
+		
+	}
 	
 	public static void main(String[] args) 
 	{

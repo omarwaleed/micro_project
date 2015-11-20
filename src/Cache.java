@@ -3,6 +3,31 @@ public class Cache
 {
 	private String[][] content;
 	private int assoc;
+	public String[][] getContent() {
+		return content;
+	}
+
+	public void setContent(String[][] content) {
+		this.content = content;
+	}
+
+	public int getAssoc() {
+		return assoc;
+	}
+
+	public void setAssoc(int assoc) {
+		this.assoc = assoc;
+	}
+
+	public boolean isMainMemory() {
+		return mainMemory;
+	}
+
+	public void setMainMemory(boolean mainMemory) {
+		this.mainMemory = mainMemory;
+	}
+
+	int NoOfBlocks;
 	private int writePolicy; // write policy will be indicated by an int value to be discussed later
 	//0=>write through ,1=>write back
 	private int cycles;
@@ -11,6 +36,7 @@ public class Cache
 //	initialize the cache with given parameters
 	public Cache(int size, int lineSize, int associativity) 
 	{
+		NoOfBlocks=size/lineSize;
 //		checks if the line size is bigger than the cache size and stops the cache creation
 		if (lineSize > size) 
 		{
@@ -26,6 +52,7 @@ public class Cache
 //	another constructor that takes all the needed parameters
 	public Cache(int size, int lineSize, int associativity, int writePolicyParam, int cyclesParam) 
 	{
+		NoOfBlocks=size/lineSize;
 		if (lineSize > size || cyclesParam == 0) 
 		{
 			System.out.println(size + " " + lineSize + " " + associativity + " " + writePolicyParam + " " + cyclesParam);
@@ -52,13 +79,16 @@ public class Cache
 	{
 		return writePolicy;
 	}
+	public int  getNoOFBlocks(){
+		return NoOfBlocks;
+	}
 	public void setMainMemory(){
 		mainMemory=true;
 	}
-	public void setValidBit(int blockNo){
+	public void setDirtyBit(int blockNo){
 		content[blockNo][content[0].length-1]="1";//some one modified this block
 	}
-	public void clearValidBit(int blockNo){
+	public void clearDirtyBit(int blockNo){
 		content[blockNo][content[0].length-1]="0";//the block is not valid 
 	}
 	public void setWritePolicy(int writePolicy) 
