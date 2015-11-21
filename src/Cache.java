@@ -120,11 +120,17 @@ public class Cache
 		   if (writePolicy == 1) {
 			   // set the dirty bit here
 		   }
+		   if (writePolicy == 2) {
+			   // write through method here
+		   }
 	   }
 	   else {
 		   if (writePolicy == 1) {
 			   // write back method here 
 			   
+		   }
+		   if (writePolicy == 2) {
+			   // write through method here
 		   }
 		   int tag = divide(address)[0];
 		   String[] newData = new String[data.length+2];
@@ -135,6 +141,7 @@ public class Cache
 		   newData[data.length+1] = "1";
 		 //  System.err.println(Arrays.toString(newData));
 		   content[index] = newData; // replace 
+		   
 	   }
 	   
    }
@@ -162,6 +169,7 @@ public class Cache
 	   }
 	   
    }
+   // method that divides the address into tag,index,and offset
    public int[] divide(int address) {
 	   String binary = Integer.toBinaryString(address);
 	  /// System.out.println(binary.length());
