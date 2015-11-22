@@ -80,4 +80,29 @@ public class CacheTest {
     	 int [] expected1 = {13,13,0};
          assertArrayEquals(expected1,c.divide(221*4));
     }
+   @Test 
+   public void testRead() {
+	   Cache c = new Cache(32,4,1,0,1);
+	   String[] s = {"Hello","World"};
+	   c.writeDM(1*4, s);
+   	   c.writeDM(134*4,s);
+   	   c.writeDM(212*4, s);
+   	   c.writeDM(1*4, s);
+   	   c.writeDM(135*4,s);
+   	   c.writeDM(213*4,s);
+   	   c.writeDM(162*4,s);
+   	   c.writeDM(161*4,s);
+   	   c.writeDM(2*4,s);
+   	   c.writeDM(44*4,s);
+   	   c.writeDM(41*4,s);
+   	   c.writeDM(221*4,s);
+//   	   String[] expected = {"Hello","World","13","1"};
+//   	   assertEquals(expected,c.readDM(221*4));
+   	   
+   	String[] expected1 = {"Hello","World","2","1"};
+       assertEquals(expected1,c.readDM(41*4));
+       
+       assertNull(c.readDM(800*4));
+   	   
+   }
 }

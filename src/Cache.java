@@ -83,7 +83,7 @@ public class Cache
         int index =  divide(address)[1];
        // System.out.println("index in hitOrMiss " + index);
         int tag =  divide(address)[0];
-        System.out.println("index " + index + " tag " + tag);
+       // System.out.println("index " + index + " tag " + tag);
        // System.err.println("index value " + index + " "+content.length );
          if (content != null && content[index] != null && content[index][content[index].length-1] != null && content[index][content[index].length-2] != null){
         if (content[index][content[index].length-1].equals("0") || !content[index][content[index].length-2].equals(tag+""))
@@ -97,10 +97,11 @@ public class Cache
 	//method to read from cache 
    public String[] readDM(int address) {
 	   int blockNo = size/lineSize;
-       int index = divide(address)[0];
+       int index = divide(address)[1];
       
 	   if (hitOrMissDM(address)) {
               hitRate++;
+           System.out.println(Arrays.toString(getContentOf(index)));
 		   return getContentOf(index);
 	   }
 	  return null;
@@ -139,7 +140,7 @@ public class Cache
 		   }
 		   newData[data.length] = tag+"";
 		   newData[data.length+1] = "1";
-		 //  System.err.println(Arrays.toString(newData));
+		//  System.err.println(Arrays.toString(newData));
 		   content[index] = newData; // replace 
 		   
 	   }
