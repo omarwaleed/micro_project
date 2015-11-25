@@ -1,6 +1,8 @@
 import java.util.Arrays;
 
 import com.sun.xml.internal.bind.CycleRecoverable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class Cache 
@@ -88,15 +90,13 @@ public class Cache
        // System.out.println("index " + index + " tag " + tag);
        // System.err.println("index value " + index + " "+content.length );
          if (content != null && content[index] != null && content[index][content[index].length-1] != null && content[index][content[index].length-2] != null){
-        if (content[index][content[index].length-1].equals("0") || !content[index][content[index].length-2].equals(tag+""))
-		  return false;
-        else 
-        	return true;
+			 return !(content[index][content[index].length - 1].equals("0") || !content[index][content[index].length - 2].equals(tag + ""));
          }
          return false;
             
 	}
 	//method to read from cache 
+   @Nullable
    public String[] readDM(int address) {
 	   int blockNo = size/lineSize;
        int index = divide(address)[1];
@@ -109,7 +109,7 @@ public class Cache
 	  return null;
    }
    //method to write to the cache
-   public void writeDM(int address,String[] data) { // bug in the tag and index use the binary thing
+   public void writeDM(int address, @NotNull String[] data) { // bug in the tag and index use the binary thing
 	   //contentString();
 	  
 	   int blockNo = size/lineSize;
@@ -173,6 +173,7 @@ public class Cache
 	   
    }
    // method that divides the address into tag,index,and offset
+   @NotNull
    public int[] divide(int address) {
 	   String binary = Integer.toBinaryString(address);
 	  /// System.out.println(binary.length());

@@ -1,3 +1,5 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,7 +11,9 @@ public class Processor {
 	
 //	Initialize the registers and the cache levels
 //	cache levels will end with the memory level but to be handled after user input
+	@NotNull
 	private static int[] register = new int[32];
+	@NotNull
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
 
 //	get the value inside a single register
@@ -29,6 +33,7 @@ public class Processor {
 	}
 	
 //	get all registers
+	@NotNull
 	public int[] allRegisters()
 	{
 		return register;
