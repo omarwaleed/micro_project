@@ -5,39 +5,39 @@ public class CacheTest {
  
     @Test
     public void testHitorMissDirectMapped() {
-    	Cache c = new Cache(32, 4, 1, 0, 1);
+    	Cache c = new Cache(32, 2, 1, 0, 1);
         String[] s = {"Hello","World"};
-    	c.writeDM(1*4, s);
-    	c.writeDM(134*4,s);
-    	c.writeDM(212*4, s);
-    	c.writeDM(1*4, s);
-    	c.writeDM(135*4,s);
-    	c.writeDM(213*4,s);
-    	c.writeDM(162*4,s);
-    	c.writeDM(161*4,s);
-    	c.writeDM(2*4,s);
-    	c.writeDM(44*4,s);
-    	c.writeDM(41*4,s);
-    	c.writeDM(221*4,s);
+    	c.writeDM(1*2, s);
+    	c.writeDM(134*2,s);
+    	c.writeDM(212*2, s);
+    	c.writeDM(1*2, s);
+    	c.writeDM(135*2,s);
+    	c.writeDM(213*2,s);
+    	c.writeDM(162*2,s);
+    	c.writeDM(161*2,s);
+    	c.writeDM(2*2,s);
+    	c.writeDM(44*2,s);
+    	c.writeDM(41*2,s);
+    	c.writeDM(221*2,s);
     	
     	assertEquals(1, c.getHitRate());
     }
     @Test
     public void testHitorMissDirectMapped2() {
-    	Cache c = new Cache(32, 8, 1, 0, 1);
+    	Cache c = new Cache(32, 4, 1, 0, 1);
         String[] s = {"Hello","World","Hello"};
-    	c.writeDM(1*4, s);
-    	c.writeDM(134*4,s);
-    	c.writeDM(212*4, s);
-    	c.writeDM(1*4, s);
-    	c.writeDM(135*4,s);
-    	c.writeDM(213*4,s);
-    	c.writeDM(162*4,s);
-    	c.writeDM(161*4,s);
-    	c.writeDM(2*4,s);
-    	c.writeDM(44*4,s);
-    	c.writeDM(41*4,s);
-    	c.writeDM(221*4,s);
+    	c.writeDM(1*2, s);
+    	c.writeDM(134*2,s);
+    	c.writeDM(212*2, s);
+    	c.writeDM(1*2, s);
+    	c.writeDM(135*2,s);
+    	c.writeDM(213*2,s);
+    	c.writeDM(162*2,s);
+    	c.writeDM(161*2,s);
+    	c.writeDM(2*2,s);
+    	c.writeDM(44*2,s);
+    	c.writeDM(41*2,s);
+    	c.writeDM(221*2,s);
     	
     	assertEquals(3, c.getHitRate());
     }

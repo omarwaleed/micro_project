@@ -1,5 +1,7 @@
 import java.util.Arrays;
 
+import com.sun.xml.internal.bind.CycleRecoverable;
+
 
 public class Cache 
 {
@@ -98,7 +100,7 @@ public class Cache
    public String[] readDM(int address) {
 	   int blockNo = size/lineSize;
        int index = divide(address)[1];
-      
+       
 	   if (hitOrMissDM(address)) {
               hitRate++;
            System.out.println(Arrays.toString(getContentOf(index)));
