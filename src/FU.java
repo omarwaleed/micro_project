@@ -19,6 +19,9 @@ public FU(String t,String n,int l) {
     latency = l;
     busy = false;
 }
+public String toString() {
+   return "[Type " + type + ", Name: " + name + ", OP: " + op + ", Busy: " + busy + ", Latency: " + latency + ", Vj: " + vj + ", Vk: " + vk + ", Qj: " + qj + ", Qk: " + qk + ", Dest: " + dest + ", A: " + a + "]";
+}
 public void execute() {
     if (op.equalsIgnoreCase("load")) {
         // call load method
@@ -34,5 +37,6 @@ public void execute() {
     }
     // add other instructions
 }
+
 
 }

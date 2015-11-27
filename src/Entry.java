@@ -19,4 +19,7 @@ public class Entry {
 	    ready = false;
 	    occupied = false;
 	}
+	public String toString() {
+		return "[Type: " + type + ", Dest: " + dest + ", Value: " + value + " ,Ready: " + ready + " ,Occupied:"  + occupied + "]";
+	}
 }

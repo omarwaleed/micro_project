@@ -14,4 +14,8 @@ public class Instruction {
         rd = dest;
         type = t;
     }
+    public String toString() {
+        return "[Name: " + name + ", rs: " + rs + ", rt: " + rt + ", rd: " + rd + "Type: " + type + "]";
+    }
+
 }
