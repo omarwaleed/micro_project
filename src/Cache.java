@@ -11,6 +11,7 @@ public class Cache
 	private int cycles;
 	private int size;
 	private int lineSize;
+	private boolean mainMemory=false;//the default is the cache but if it is main set it by setMainMemory method
 	private int hitRate = 0;
 	 //valid bit is stored at index content[n][content[n].length-1]
 	//tag bit is stored at index content[n][content[n].length-2]
@@ -57,6 +58,14 @@ public class Cache
 	{
 		return writePolicy;
 	}
+	public boolean isMainMemory() {
+		return mainMemory;
+	}
+
+	public void setMainMemory(boolean mainMemory) {
+		this.mainMemory = mainMemory;
+	}
+	
 
 	public void setWritePolicy(int writePolicy) 
 	{
