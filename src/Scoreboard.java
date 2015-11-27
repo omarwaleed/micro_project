@@ -1,4 +1,4 @@
-import java.util.Hashtable;
+import java.util.*;
 
 public class Scoreboard {
    static Scoreboard sb;
@@ -6,11 +6,14 @@ public class Scoreboard {
    Entry[] rob;  // reorder buffer is an array of entries 
    int head;  // rob head pointer
    int tail;  // rob tail pointer
-      // add reservation station here 
+	ArrayList<FU>functionalUnits;
+    Hashtable<Instruction,String>instructions; // each instruction is mapped to its current phase
+
    private Scoreboard(){
 	   registerStatus = new Hashtable<String,String>();
 	   rob = new Entry[10];
 	   head = tail = 0;
+       functionalUnits = new ArrayList<FU>();
    }
    public static Scoreboard getInstance() {  // use this method to get access the score board
 	   if (sb == null) 
@@ -24,10 +27,28 @@ public class Scoreboard {
   }
   public boolean robFull() {
 	 for(int i = 0; i < rob.length;i++) {
-		 if (!rob[i].isOccupied())
+		 if (!rob[i].occupied)
 			 return false;
 	 }
 	   return true;
   }
+  public void insertFU(String type, String name, int latency) {
+      FU fu = new FU(type,name,latency);
+      functionalUnits.add(fu);
+  }
+  public boolean fullFuncUnit(String type) {
+      for(int i = 0; i<functionalUnits.size();i++) {
+          FU fu = functionalUnits.get(i);
+          if (!fu.busy && fu.type.equalsIgnoreCase(type))
+              return false;
+      }
+      return true;
+  }
+    public static void main(String[]args) {
+//        Scoreboard sb = Scoreboard.getInstance();
+//        Entry e1 = new Entry("LD","F6","",false);
+//        Entry e2 = new Entry("LD","F6","",false);
+//        Entry e3 = new Entry("LD","F6","",false);
+    }
    
 }

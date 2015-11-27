@@ -1,8 +1,7 @@
 import java.util.Arrays;
 
 import com.sun.xml.internal.bind.CycleRecoverable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 
 
 public class Cache 
@@ -96,7 +95,7 @@ public class Cache
             
 	}
 	//method to read from cache 
-   @Nullable
+   
    public String[] readDM(int address) {
 	   int blockNo = size/lineSize;
        int index = divide(address)[1];
@@ -109,7 +108,7 @@ public class Cache
 	  return null;
    }
    //method to write to the cache
-   public void writeDM(int address, @NotNull String[] data) { // bug in the tag and index use the binary thing
+   public void writeDM(int address,  String[] data) { // bug in the tag and index use the binary thing
 	   //contentString();
 	  
 	   int blockNo = size/lineSize;
@@ -173,7 +172,7 @@ public class Cache
 	   
    }
    // method that divides the address into tag,index,and offset
-   @NotNull
+  
    public int[] divide(int address) {
 	   String binary = Integer.toBinaryString(address);
 	  /// System.out.println(binary.length());
