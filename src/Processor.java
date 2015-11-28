@@ -16,7 +16,7 @@ public class Processor {
 //	cache levels will end with the memory level but to be handled after user input
 	
 	private static int[] register = new int[32];
-	
+	ArrayList<String>lines = new ArrayList<String>();
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
 	Hashtable<String, String> labels = new Hashtable<String,String>();
 //	get the value inside a single register
@@ -51,7 +51,7 @@ public class Processor {
  Paths.get("src/input.txt"), StandardCharsets.UTF_8);
  getLabels(lines);
  if (validateLabels(lines) && compile(lines)) {
-    // here make an instance of instruction object passing to it the values
+    this.lines = lines;
  } else {
  System.out.println("your code contains errors!");
  }
