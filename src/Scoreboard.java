@@ -2,7 +2,7 @@ import java.util.*;
 
 public class Scoreboard {
    static Scoreboard sb;
-   Hashtable<String,String> registerStatus;
+   Hashtable<String,Entry> registerStatus;
    Entry[] rob;  // reorder buffer is an array of entries 
    int head;  // rob head pointer
    int tail;  // rob tail pointer
@@ -10,7 +10,7 @@ public class Scoreboard {
     Hashtable<Instruction,String>instructions; // each instruction is mapped to its current phase
 
    private Scoreboard(){
-	   registerStatus = new Hashtable<String,String>();
+	   registerStatus = new Hashtable<String,Entry>();
 	   rob = new Entry[10];
 	   head = tail = 0;
        functionalUnits = new ArrayList<FU>();
@@ -46,9 +46,7 @@ public class Scoreboard {
   }
     public void insertROB(Entry entry) { //tested
         rob[tail] = entry;
-        //System.out.println("pre increment: " + tail);
        tail = increment(tail);
-        //System.out.println("post increment: " + tail);
     }
     public void removeFromROB() { // tested
         rob[head] = null;

@@ -17,5 +17,8 @@ public class Instruction {
     public String toString() {
         return "[Name: " + name + ", rs: " + rs + ", rt: " + rt + ", rd: " + rd + "Type: " + type + "]";
     }
+    public boolean equals(Instruction i) {
+        return (i.name.equals(name) && i.rs.equals(rs) && i.rt.equals(rt) && i.rd.equals(rd) && i.type.equals(type));
+    }
 
 }

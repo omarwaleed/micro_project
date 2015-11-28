@@ -22,4 +22,9 @@ public class Entry {
 	public String toString() {
 		return "[Type: " + type + ", Dest: " + dest + ", Value: " + value + " ,Ready: " + ready + " ,Occupied:"  + occupied + "]";
 	}
+	public boolean equals(Entry e) {
+		return (e.occupied == occupied && e.ready == ready && e.value.equals(value) && e.type.equals(type) && e.dest
+				.equals(dest));
+
+	}
 }
