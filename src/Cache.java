@@ -14,6 +14,8 @@ public class Cache
 	private boolean mainMemory=false;//the default is the cache but if it is main set it by setMainMemory method
 	private int hitRate = 0;
 	int NoOfBlocks;
+	int offsetBits;
+	int indexBits;
 	 //valid bit is stored at index content[n][content[n].length-1]
 	//tag bit is stored at index content[n][content[n].length-2]
 	
@@ -39,6 +41,20 @@ public class Cache
 	public Cache(int size, int lineSize, int associativity, int writePolicyParam, int cyclesParam) 
 	{
 		NoOfBlocks=size/lineSize;
+		
+		if(associativity==1)//direct map
+	    		indexBits = (int)(Math.log((NoOfBlocks))/Math.log(2));
+		else if(associativity==NoOfBlocks){
+			indexBits=0;
+		}
+		else{
+			int No_of_sets=NoOfBlocks/associativity;
+			 indexBits = (int)(Math.log((No_of_sets))/Math.log(2));
+			
+		}
+	    
+	    offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+		
 		if (lineSize > size || cyclesParam == 0) 
 		{
 			System.out.println(size + " " + lineSize + " " + associativity + " " + writePolicyParam + " " + cyclesParam);
