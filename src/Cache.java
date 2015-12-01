@@ -12,13 +12,18 @@ public class Cache
 	private int cycles;
 	private int size;
 	private int lineSize;
+	private boolean mainMemory=false;//the default is the cache but if it is main set it by setMainMemory method
 	private int hitRate = 0;
+	int NoOfBlocks;
+	int offsetBits;
+	int indexBits;
 	 //valid bit is stored at index content[n][content[n].length-1]
 	//tag bit is stored at index content[n][content[n].length-2]
 	
 //	initialize the cache with given parameters
 	public Cache(int size, int lineSize, int associativity) 
 	{
+		NoOfBlocks=size/lineSize;
 //		checks if the line size is bigger than the cache size and stops the cache creation
 		if (lineSize > size) 
 		{
@@ -29,13 +34,28 @@ public class Cache
 //		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
 		this.size = size;
 		this.lineSize = lineSize;
-		content = new String[size/(lineSize/2)][lineSize];
+		content = new String[size/(lineSize/2)][lineSize+2];//one coloumn for tag,one for valid bit
 		assoc = associativity;
 	}
 	
 //	another constructor that takes all the needed parameters
 	public Cache(int size, int lineSize, int associativity, int writePolicyParam, int cyclesParam) 
 	{
+		NoOfBlocks=size/lineSize;
+		
+		if(associativity==1)//direct map
+	    		indexBits = (int)(Math.log((NoOfBlocks))/Math.log(2));
+		else if(associativity==NoOfBlocks){
+			indexBits=0;
+		}
+		else{
+			int No_of_sets=NoOfBlocks/associativity;
+			 indexBits = (int)(Math.log((No_of_sets))/Math.log(2));
+			
+		}
+	    
+	    offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+		
 		if (lineSize > size || cyclesParam == 0) 
 		{
 			System.out.println(size + " " + lineSize + " " + associativity + " " + writePolicyParam + " " + cyclesParam);
@@ -47,9 +67,17 @@ public class Cache
 		assoc = associativity;
 		this.size = size;
 		this.lineSize = lineSize;
-		if (assoc ==1) {		
-		 content = new String[size/(lineSize/2)][lineSize+2];
-		}
+		if(writePolicy==0)//write through
+			content = new String[size/lineSize][lineSize+2];//tag will be stored and valid bit
+		else //note that the last byte is the valid bit(write back)
+			{
+			//write back
+				content = new String[size/lineSize][lineSize+3];//tag,valid and dirty bit
+				for (int i = 0; i <content.length ; i++) {
+					content[i][content[i].length-1]="0";//dirty bit
+					content[i][content[i].length-2]="0";//valid bit
+				}
+			}
 	}
 	
 	
@@ -58,6 +86,14 @@ public class Cache
 	{
 		return writePolicy;
 	}
+	public boolean isMainMemory() {
+		return mainMemory;
+	}
+
+	public void setMainMemory(boolean mainMemory) {
+		this.mainMemory = mainMemory;
+	}
+	
 
 	public void setWritePolicy(int writePolicy) 
 	{
@@ -77,6 +113,15 @@ public class Cache
 	public String[] getContentOf(int index) 
 	{
 		return this.content[index];
+	}
+	public void setDirtyBit(int blockNo){
+		content[blockNo][content[0].length-1]="1";//some one modified this block
+		
+			
+	}
+	
+	public void clearDirtyBit(int blockNo){
+		content[blockNo][content[0].length-1]="0";//the block is not valid 
 	}
 	// method to check if the data is already there
 	public boolean hitOrMissDM(int address) {
