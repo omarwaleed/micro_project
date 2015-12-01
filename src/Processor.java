@@ -16,9 +16,10 @@ public class Processor {
 //	cache levels will end with the memory level but to be handled after user input
 	
 	private static int[] register = new int[32];
-	ArrayList<String>lines = new ArrayList<String>();
+	static ArrayList<String>lines = new ArrayList<String>();
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
 	Hashtable<String, String> labels = new Hashtable<String,String>();
+	static int PC;
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -42,24 +43,26 @@ public class Processor {
 		return register;
 	}
 
-	public void init() {// method init takes input file from the user and
+	public void init() 
+	{// method init takes input file from the user and
  	// compiles the file and handle pseudo
  	// instructions
- try {
-
- ArrayList<String> lines = (ArrayList<String>) Files.readAllLines(
- Paths.get("src/input.txt"), StandardCharsets.UTF_8);
- getLabels(lines);
- if (validateLabels(lines) && compile(lines)) {
-    this.lines = lines;
- } else {
- System.out.println("your code contains errors!");
- }
- } catch (IOException e) {
- // TODO Auto-generated catch block
- e.printStackTrace();
- }
-}
+	 try {
+	
+	 ArrayList<String> lines = (ArrayList<String>) Files.readAllLines(
+	 Paths.get("src/input.txt"), StandardCharsets.UTF_8);
+	 getLabels(lines);
+	 if (validateLabels(lines) && compile(lines)) {
+	    this.lines = lines;
+	 } else {
+	 System.out.println("your code contains errors!");
+	 }
+	 } catch (IOException e) {
+	 // TODO Auto-generated catch block
+	 e.printStackTrace();
+	 } 
+	 
+	}
 	public boolean isIFormat(String instruction) {
 		return (instruction
 				.matches("^\\w*\\s*\\:?\\s*(addi|lui)\\s*(\\$\\w\\d?\\,\\s*){2}\\s*\\d*$")
@@ -198,6 +201,45 @@ public class Processor {
 			}
 		}
 		return compiled;
+	}
+	
+	///// omar's work starts here
+	
+	public static Instruction[] fetch()
+	{
+		// WARNING
+		// i initialized a temporary instruction class at the bottom of this file
+		
+		
+		
+		// instruction(name, type, rs, rd, rt)
+		Instruction[] fetched = new Instruction[4];
+		
+		for (int i = 0; i < fetched.length; i++) 
+		{
+			//	fetch every instruction from lines from pc to pc + 3
+			// create an object of that instruction
+			// add it to the array
+			String tempLine = lines.get(PC+ i);
+			String [] sLine = tempLine.split(" ");
+			String [] regs = sLine[1].split(",");
+			
+			switch (sLine[0].toLowerCase()) 
+			{
+			case "add": fetched[i] = new Instruction("Add", "Add", regs[0], regs[1], regs[2]); break;
+			case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
+			case "beq": fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], regs[2]); break;
+			case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
+			case "store": fetched[i] = new Instruction("store", "load", regs[0], regs[1], regs[2]); break;
+			case "mult": fetched[i] = new Instruction("mult", "mult", regs[0], regs[1], regs[2]); break;
+			case "div": fetched[i] = new Instruction("div", "mult", regs[0], regs[1], regs[2]); break;
+
+			default: System.out.println("Something is wrong in fetch() switch statement");break;
+			}
+		}
+		
+		return fetched;
+		
 	}
 
 	/////soha#write through
@@ -481,5 +523,21 @@ public class Processor {
 
 	}
 	 
+
+}
+
+//temporary instruction class... remove when the original is done
+class Instruction
+{
+	String name;
+	String type;
+	String rs;
+	String rd;
+	String rt;
+	
+	public Instruction(String name, String type, String rs, String rd, String rt)
+	{
+		// testing only			
+	};
 
 }
