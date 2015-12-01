@@ -212,7 +212,7 @@ public class Processor {
 		
 		
 		
-		// instruction(name, type, rs, rd, rt)
+		// instruction(name, type, rd, rs, rt)
 		Instruction[] fetched = new Instruction[4];
 		
 		for (int i = 0; i < fetched.length; i++) 
@@ -221,13 +221,29 @@ public class Processor {
 			// create an object of that instruction
 			// add it to the array
 			String tempLine = lines.get(PC+ i);
-			String [] sLine = tempLine.split(" ");
+			if (tempLine == null) 
+			{
+				System.out.println("Reached end of input");
+				return fetched;
+			}
+			
+			String [] sLine;
+			if (tempLine.contains(":")) 
+			{
+				sLine = tempLine.split(":")[1].split(" ");
+			}
+			else
+			{
+				sLine = tempLine.split(" ");
+			}
 			String [] regs = sLine[1].split(",");
 			
 			switch (sLine[0].toLowerCase()) 
 			{
 			case "add": fetched[i] = new Instruction("Add", "Add", regs[0], regs[1], regs[2]); break;
 			case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
+//			case "addi": fetched[i] = new Instruction("Addi", "Add", regs[0], regs[1], regs[2]); break;
+//			case "nand": fetched[i] = new Instruction("Nand", "Add", regs[0], regs[1], regs[2]); break;
 			case "beq": fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], regs[2]); break;
 			case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
 			case "store": fetched[i] = new Instruction("store", "load", regs[0], regs[1], regs[2]); break;
