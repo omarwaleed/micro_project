@@ -1,6 +1,6 @@
 # ignore everything
 .classpath
-/bin/
+#/bin/
 /.idea
 /micro_project.iml
 /micro_project.eml
