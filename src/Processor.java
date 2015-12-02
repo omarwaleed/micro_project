@@ -18,7 +18,7 @@ public class Processor {
 	private static int[] register = new int[32];
 	static ArrayList<String>lines = new ArrayList<String>();
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
-	Hashtable<String, String> labels = new Hashtable<String,String>();
+	static Hashtable<String, String> labels = new Hashtable<String,String>();
 	static int PC;
 //	get the value inside a single register
 	public int getRegister(int reg) 
@@ -244,11 +244,34 @@ public class Processor {
 			case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
 //			case "addi": fetched[i] = new Instruction("Addi", "Add", regs[0], regs[1], regs[2]); break;
 //			case "nand": fetched[i] = new Instruction("Nand", "Add", regs[0], regs[1], regs[2]); break;
-			case "beq": fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], regs[2]); break;
+			case "beq":
+				// if the content of regs[2] is present in the labels get its PC value from the hashtable
+				// else put the number directly
+				if (labels.containsKey(regs[2])) 
+				{
+					fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], labels.get(regs[2]));
+				}
+				else
+				{
+					fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], regs[2]);
+				} 
+				break;
 			case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
 			case "store": fetched[i] = new Instruction("store", "load", regs[0], regs[1], regs[2]); break;
 			case "mult": fetched[i] = new Instruction("mult", "mult", regs[0], regs[1], regs[2]); break;
 			case "div": fetched[i] = new Instruction("div", "mult", regs[0], regs[1], regs[2]); break;
+			case "jalr":
+				int saveTo = Integer.parseInt(regs[0].toLowerCase().split("r")[1]);
+				if (saveTo > 31 || saveTo < 1) 
+				{
+					System.out.println("Sth is wrong with the register to save to in jalr in fetch method");
+				}
+				else
+				{
+					register[saveTo] = PC+1;
+					PC = Integer.parseInt(regs[1]);
+				}
+				break;
 
 			default: System.out.println("Something is wrong in fetch() switch statement");break;
 			}
