@@ -253,7 +253,7 @@ public class Processor {
 				}
 				else
 				{
-					fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], regs[2]);
+					fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
 				} 
 				break;
 			case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
@@ -271,7 +271,20 @@ public class Processor {
 					register[saveTo] = PC+1;
 					PC = Integer.parseInt(regs[1]);
 				}
+				fetched[i] = new Instruction("jarl", "add", regs[0], regs[1], regs[2]);
 				break;
+				// keep in mind here it assumes that the registers will be from 0 to 31
+				// if out of bounds it will give a null pointer exception which indicates compiling error for user
+			case "ret":
+				PC = register[Integer.parseInt(regs[0])];
+				fetched[i] = new Instruction("jarl", "add", regs[0], null, null);
+				break;
+			case "jmp":
+				PC = register[Integer.parseInt(regs[0])];
+				fetched[i] = new Instruction("jarl", "add", regs[0], regs[1], null);
+				break;
+			case "nand": fetched[i] = new Instruction("nand", "add", regs[0], regs[1], regs[2]); break;
+			case "addi": fetched[i] = new Instruction("addi", "add", regs[0], regs[1], regs[2]); break;
 
 			default: System.out.println("Something is wrong in fetch() switch statement");break;
 			}
