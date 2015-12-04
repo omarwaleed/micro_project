@@ -11,7 +11,9 @@ public class Cache
 	private int size;
 	private int lineSize;
 	private int hitRate = 0;
-	private int numofblocks = (int)size/lineSize;
+	int indexBits;
+	int offsetBits;
+	int NoOFBlocks;
 	 //valid bit is stored at index content[n][content[n].length-1]
 	//tag bit is stored at index content[n][content[n].length-2]
 	
@@ -27,9 +29,10 @@ public class Cache
 		
 //		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
 		this.size = size;
-		this.lineSize = lineSize;
+		this.setLineSize(lineSize);
 		content = new String[size/(lineSize/2)][lineSize];
 		assoc = associativity;
+		NoOFBlocks= (int) size/lineSize;
 	}
 	
 //	another constructor that takes all the needed parameters
@@ -45,7 +48,7 @@ public class Cache
 		cycles = cyclesParam;
 		assoc = associativity;
 		this.size = size;
-		this.lineSize = lineSize;
+		this.setLineSize(lineSize);
 		if (assoc ==1) {		
 		 content = new String[size/(lineSize/2)][lineSize+2];
 		}
@@ -80,7 +83,7 @@ public class Cache
 	// method to check if the data is already there
 	public boolean hitOrMissDM(int address) {
 		//int[] division = divide(address);
-        int blockNo = size/lineSize;
+        int blockNo = size/getLineSize();
        // System.err.println("Division: "+Arrays.toString(division));
         int index =  divide(address)[1];
        // System.out.println("index in hitOrMiss " + index);
@@ -98,7 +101,7 @@ public class Cache
 	}
 	//method to read from cache 
    public String[] readDM(int address) {
-	   int blockNo = size/lineSize;
+	   int blockNo = size/getLineSize();
        int index = divide(address)[1];
       
 	   if (hitOrMissDM(address)) {
@@ -112,7 +115,7 @@ public class Cache
    public void writeDM(int address,String[] data) { // bug in the tag and index use the binary thing
 	   //contentString();
 	  
-	   int blockNo = size/lineSize;
+	   int blockNo = size/getLineSize();
 	   int index = divide(address)[1];
 	   int offset = getOffset();
 	 //  System.err.println("Hit? : " + hitOrMissDM(address) + " block number " + blockNo);
@@ -156,7 +159,7 @@ public class Cache
 	   return hitRate;
    }
    public void clearCache() {
-	   content = new String[size/lineSize][lineSize+2];
+	   content = new String[size/getLineSize()][getLineSize()+2];
    }
    public void contentString() {
 	   for(int i = 0; i<content.length;i++) {
@@ -183,8 +186,8 @@ public class Cache
 	   // assoc = 1 means that it is direct mapping 
 	   
 	   if(assoc==1){
-	   int indexBits = (int)(Math.log((size/(lineSize)))/Math.log(2))+1;
-	   int offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+	   indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2))+1;
+	   offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
 	   int tagBits = 32-(indexBits+offsetBits);
 	//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
 	   int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
@@ -196,22 +199,22 @@ public class Cache
 	   int[] division = {tag,index,offset};
 	   return division;
 	   // if it is set associative
-	   }else if(assoc>1 && assoc <numofblocks){
-		   int indexBits = (int) ((int)(Math.log(numofblocks/assoc))/Math.log(2))+1;
-		   int offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+	   }else if(assoc>1 && assoc <NoOFBlocks){
+		   int indexBits = (int) ((int)(Math.log(NoOFBlocks/assoc))/Math.log(2))+1;
+		   int offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
 		   int tagBits = 32-indexBits-offsetBits;
-		   	//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
+		   	  // System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
 		   	   int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
-		   	 //  System.out.println("Offset: " + offset);
+		   	  //System.out.println("Offset: " + offset);
 		   	   int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits-indexBits),2);
-		   	 //  System.out.println("Tag: " + tag);
+		   	  // System.out.println("Tag: " + tag);
 		   	   int index = Integer.parseInt(binary.substring(binary.length()-(offsetBits+indexBits),binary.length()-offsetBits),2);
 		   	  // System.out.println("index value: " + index);
 		   	  int []division ={tag,index,offset};
 		   	  return division;
 		   	  // if it is fully associative
 	   }else{
-		  int offsetBits =  (int)(Math.log(lineSize)/Math.log(2));
+		  int offsetBits =  (int)(Math.log(getLineSize())/Math.log(2));
 		  int tagBits= 32-offsetBits;
 		  int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
 		  int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits),2);
@@ -220,8 +223,20 @@ public class Cache
 	   }
 	   
    }
-   // to detect if hit or miss in set associative
-   public int hitormissset(int address){
+   
+   public String[] readsetandfull(int address) {
+      int hitindex= hitormiss(address);
+	   if (hitindex!=-3) {  // this means hit
+              hitRate++;
+           System.out.println(Arrays.toString(getContentOf(hitindex)));
+		   return getContentOf(hitindex);
+	   }
+	  return null;
+   }
+   
+   // to detect if hit or miss for both set and fully associative
+   public  int hitormiss(int address){
+	   if(assoc>1 && assoc< NoOFBlocks){
    int[]divide = divide(address);
    int tag=divide(address)[0]; 
    int index= divide(address)[1];  // which will determine the set number in this case
@@ -238,11 +253,11 @@ public class Cache
    }
    return -3;
    }
-    
-   public int hitormissfull(int address){
+   else if(assoc== NoOFBlocks){
+	   System.out.println("ana d5lt hena");
 	   int[]divide = divide(address);
 	   int tag=divide(address)[0];
-	   for(int i= 0; i<numofblocks; i++){
+	   for(int i= 0; i<NoOFBlocks; i++){
 		   if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
 			 if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
 			   return i;
@@ -251,14 +266,32 @@ public class Cache
 
 			   }
 			   return -3;
-	   }
+   }else{
+	   return -3;
+   }
+}
+
+    
+  /*public int hitormissfull(int address){
+	   int[]divide = divide(address);
+	   int tag=divide(address)[0];
+	   for(int i= 0; i<NoOFBlocks; i++){
+		   if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
+			 if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
+			   return i;
+			   }
+			   }
+
+			   }
+			   return -3;
+	   }*/
    
 public int createrandom(int startreadblock){
 	int endblock= startreadblock+assoc;
 	int num = startreadblock+ (int)(Math.random()*endblock);
 	return startreadblock;
 }
-public void writefull(int address, String[]data){
+/*public void writefull(int address, String[]data){
 	// if there is a hit
 	if(hitormissfull(address)!=-3){
 		content[hitormissfull(address)]=data;
@@ -273,8 +306,8 @@ else{
 		   }
 			newData[data.length] = tag+"";
 			newData[data.length+1] = "1";
-	for(int i=0 ; i<numofblocks; i++){
-		if(content[i][content[i].length-2].equals("")){
+	for(int i=0 ; i<NoOFBlocks; i++){
+		if(content[i][content[i].length-2]==null){
 			   content[i] = newData; // replace 
 			   added=true;
 			   break;
@@ -282,15 +315,16 @@ else{
 		}
 	}
 	if(added=false){
-		int random= 0+ (int)(Math.random()*numofblocks);
+		int random= 0+ (int)(Math.random()*NoOFBlocks);
 		content[random]=newData;
 	}
 }
-}
-   public void writeset(int address , String[]data){
+}*/
+   public void write(int address , String[]data){
 // if there is hit (tag equals tag) then we will replace the content of this block to the data
-if(hitormissset(address)!=-3){
-content[hitormissset(address)] = data;
+	   if(assoc>1 && assoc< NoOFBlocks){
+if(hitormiss(address)!=-3){
+content[hitormiss(address)] = data;
 hitRate++;
 //if miss then we will check if there is an empty block then we will replace it in this block
 }else{
@@ -307,7 +341,7 @@ int[]divide = divide(address);
 	newData[data.length] = tag+"";
 	   newData[data.length+1] = "1";
    for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
-if(content[i][content[i].length-2].equals("")){
+if(content[i][content[i].length-2]==null){
 	   content[i] = newData; // replace 
 	added=true;
 	break;
@@ -319,11 +353,78 @@ if(content[i][content[i].length-2].equals("")){
 	  content[random]=newData;
    }
 }
+	   }else if(assoc== NoOFBlocks){
+			// if there is a hit
+			if(hitormiss(address)!=-3){
+				content[hitormiss(address)]=data;
+				hitRate++;
+			}
+		else{
+			 int tag = divide(address)[0];
+				   String[] newData = new String[data.length+2];
+				   boolean added=false;
+				   for(int i = 0; i<data.length;i++) {
+					   newData[i] = data[i];
+				   }
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1";
+			for(int i=0 ; i<NoOFBlocks; i++){
+				if(content[i][content[i].length-2]==null){
+					   content[i] = newData; // replace 
+					   added=true;
+					   break;
+					   
+				}
+			}
+			if(added=false){
+				int random= 0+ (int)(Math.random()*NoOFBlocks);
+				content[random]=newData;
+			}
+		}
+	   }
    }
 
-public void main (String[]args){
-	Cache b = new Cache();
-}
+
+public void setContent(String[][] content) {
+	this.content = content;
 }
 
+public int getAssoc() {
+	return assoc;
+}
+public String[][] getContent() {
+	return content;
+}
 
+public void setAssoc(int assoc) {
+	this.assoc = assoc;
+}
+
+public int getNoOFBlocks() {
+	return NoOFBlocks;
+}
+
+public void setNoOFBlocks(int NoOFBlocks) {
+	this.NoOFBlocks = NoOFBlocks;
+}
+
+public int getLineSize() {
+	return lineSize;
+}
+
+public void setLineSize(int lineSize) {
+	this.lineSize = lineSize;
+}
+public static void main (String[]args){
+	Cache c= new Cache(48,4,3);
+	System.out.println(c.hitormiss(1));
+	//c.write(1,habal);
+	System.out.println(c.hitormiss(5));
+	
+	System.out.println(c.hitormiss(6));
+	//c.write(6, habal);
+System.out.println(c.hitormiss(6));
+	System.out.println(c.readsetandfull(6));
+	
+}
+}
