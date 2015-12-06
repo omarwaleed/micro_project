@@ -1,8 +1,82 @@
+import java.util.Arrays;
+
 
 public class Cache 
 {
 	private String[][] content;
 	private int assoc;
+	int NoOfBlocks;
+	private int writePolicy; // write policy will be indicated by an int value to be discussed later
+	//0=>write through ,1=>write back
+	private int cycles;
+	private boolean mainMemory=false;//the default is the cache but if it is main set it by setMainMemory method
+	 int size;
+    int lineSize;
+	private int hitRate = 0;
+	int offsetBits;
+	int indexBits;
+//	initialize the cache with given parameters
+	
+	public Cache(int size, int lineSize, int associativity) 
+	{
+	    indexBits = (int)(Math.log((size/(lineSize)))/Math.log(2));
+	     offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+		NoOfBlocks=size/lineSize;
+//		checks if the line size is bigger than the cache size and stops the cache creation
+		if (lineSize > size) 
+		{
+			System.out.println("Error. Parameters are not correct");
+			return;
+		}
+		
+//		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
+		content = new String[size/lineSize][lineSize+2];//i added 2 -to store the tag,-to store the valid bit
+		assoc = associativity;
+	}
+	
+//	another constructor that takes all the needed parameters
+	public Cache(int size, int lineSize, int associativity, int writePolicyParam, int cyclesParam) 
+	{
+		NoOfBlocks=size/lineSize;
+		this.lineSize=lineSize;
+		
+		if(associativity==1)//direct map
+	    indexBits = (int)(Math.log((NoOfBlocks))/Math.log(2));
+		else if(associativity==NoOfBlocks){
+			indexBits=0;
+		}
+		else{
+			int No_of_sets=NoOfBlocks/associativity;
+			 indexBits = (int)(Math.log((No_of_sets))/Math.log(2));
+			
+		}
+	    
+	    offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+		
+		if (lineSize > size || cyclesParam == 0) 
+		{
+			System.out.println(size + " " + lineSize + " " + associativity + " " + writePolicyParam + " " + cyclesParam);
+			System.out.println("Error. Parameters are not correct");
+			return;
+		}
+		writePolicy = writePolicyParam;
+		cycles = cyclesParam;
+		if(writePolicy==0)//write through
+			content = new String[size/lineSize][lineSize+2];//tag will be stored and valid bit
+		else //note that the last byte is the valid bit(write back)
+			{
+			//write back
+				content = new String[size/lineSize][lineSize+3];//tag,valid and dirty bit
+				for (int i = 0; i <content.length ; i++) {
+					content[i][content[i].length-1]="0";//dirty bit
+					content[i][content[i].length-2]="0";//valid bit
+				}
+			}
+		assoc = associativity;
+	}
+	
+	
+//	setters and getters for what is to be modified after the creation of the cache if first constructor was used
 	public String[][] getContent() {
 		return content;
 	}
@@ -27,54 +101,7 @@ public class Cache
 		this.mainMemory = mainMemory;
 	}
 
-	int NoOfBlocks;
-	private int writePolicy; // write policy will be indicated by an int value to be discussed later
-	//0=>write through ,1=>write back
-	private int cycles;
-	private boolean mainMemory=false;//the default is the cache but if it is main set it by setMainMemory method
 	
-//	initialize the cache with given parameters
-	public Cache(int size, int lineSize, int associativity) 
-	{
-		NoOfBlocks=size/lineSize;
-//		checks if the line size is bigger than the cache size and stops the cache creation
-		if (lineSize > size) 
-		{
-			System.out.println("Error. Parameters are not correct");
-			return;
-		}
-		
-//		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
-		content = new String[size/lineSize][lineSize+1];//i added 1 to store the tag
-		assoc = associativity;
-	}
-	
-//	another constructor that takes all the needed parameters
-	public Cache(int size, int lineSize, int associativity, int writePolicyParam, int cyclesParam) 
-	{
-		NoOfBlocks=size/lineSize;
-		if (lineSize > size || cyclesParam == 0) 
-		{
-			System.out.println(size + " " + lineSize + " " + associativity + " " + writePolicyParam + " " + cyclesParam);
-			System.out.println("Error. Parameters are not correct");
-			return;
-		}
-		writePolicy = writePolicyParam;
-		cycles = cyclesParam;
-		if(writePolicy==0)//write through
-			content = new String[size/lineSize][lineSize+1];//tag will be stored at linesize
-		else //note that the last byte is the valid bit(write back)
-			{
-				content = new String[size/lineSize][lineSize+2];//tag will be stored at linesize and valid at linesize+1
-				for (int i = 0; i <content.length ; i++) {
-					content[i][lineSize]="0";
-				}
-			}
-		assoc = associativity;
-	}
-	
-	
-//	setters and getters for what is to be modified after the creation of the cache if first constructor was used
 	public int getWritePolicy() 
 	{
 		return writePolicy;
@@ -87,10 +114,14 @@ public class Cache
 	}
 	public void setDirtyBit(int blockNo){
 		content[blockNo][content[0].length-1]="1";//some one modified this block
+		
+			
 	}
+	
 	public void clearDirtyBit(int blockNo){
 		content[blockNo][content[0].length-1]="0";//the block is not valid 
 	}
+	
 	public void setWritePolicy(int writePolicy) 
 	{
 		this.writePolicy = writePolicy;
@@ -113,5 +144,133 @@ public class Cache
 	{
 		return this.content[index];
 	}
+	/////////////amal
 
+	public boolean hitOrMissDM(int address) {
+		//int[] division = divide(address);
+        int blockNo = size/lineSize;
+       // System.err.println("Division: "+Arrays.toString(division));
+        int index =  divide(address)[1];
+       // System.out.println("index in hitOrMiss " + index);
+        int tag =  divide(address)[0];
+       // System.out.println("index " + index + " tag " + tag);
+       // System.err.println("index value " + index + " "+content.length );
+         if (content != null && content[index] != null && content[index][content[index].length-1] != null && content[index][content[index].length-2] != null){
+        if (content[index][content[index].length-1].equals("0") || !content[index][content[index].length-2].equals(tag+""))
+		  return false;
+        else 
+        	return true;
+         }
+         return false;
+            
+	}
+	//method to read from cache 
+   public String[] readDM(int address) {
+	   int blockNo = size/lineSize;
+       int index = divide(address)[1];
+       
+	   if (hitOrMissDM(address)) {
+              hitRate++;
+           System.out.println(Arrays.toString(getContentOf(index)));
+		   return getContentOf(index);
+	   }
+	  return null;
+   }
+   //method to write to the cache
+   public void writeDM(int address,String[] data) { // bug in the tag and index use the binary thing
+	   //contentString();
+	  
+	   int blockNo = size/lineSize;
+	   int index = divide(address)[1];
+	   int offset = getOffset();
+	 //  System.err.println("Hit? : " + hitOrMissDM(address) + " block number " + blockNo);
+	   if (hitOrMissDM(address)) {
+		   content[index] = data; 
+		   hitRate++;
+		 
+		   if (writePolicy == 1) {
+			   // set the dirty bit here
+		   }
+		   if (writePolicy == 2) {
+			   // write through method here
+		   }
+	   }
+	   else {
+		   if (writePolicy == 1) {
+			   // write back method here 
+			   
+		   }
+		   if (writePolicy == 2) {
+			   // write through method here
+		   }
+		   int tag = divide(address)[0];
+		   String[] newData = new String[data.length+2];
+		   for(int i = 0; i<data.length;i++) {
+			   newData[i] = data[i];
+		   }
+		   newData[data.length] = tag+"";
+		   newData[data.length+1] = "1";
+		//  System.err.println(Arrays.toString(newData));
+		   content[index] = newData; // replace 
+		   
+	   }
+	   
+   }
+   public int getOffset() {
+	   
+	   return 0;
+   }
+   public int getHitRate() {
+	   return hitRate;
+   }
+   public void clearCache() {
+	   content = new String[size/lineSize][lineSize+2];
+   }
+   public void contentString() {
+	   for(int i = 0; i<content.length;i++) {
+		   for(int j = 0; j < content[i].length;j++) {
+			   if (j == 0)
+				   System.out.print("["+content[i][j]);
+			   else if (j == content[0].length-1) 
+				   System.out.print(", "+content[i][j]+"]");
+			   else 
+				   System.out.print(", " + content[i][j]);		   
+		   }
+		   System.out.println();
+	   }
+	   
+   }
+   // method that divides the address into tag,index,and offset
+   public int[] divide(int address) {//address is the byte address in the MM
+	   int indexBits;
+	   String binary = Integer.toBinaryString(address);
+	  /// System.out.println(binary.length());
+	   for (int i = binary.length(); i< 32 ;i++) {
+		   binary = "0" + binary;
+	   }
+	   int offsetBits = (int)(Math.log(lineSize)/Math.log(2));
+	  // System.out.println("BinaryString: " + binary);
+	   if(assoc==1)//direct map
+	    indexBits = (int)(Math.log((size/(lineSize)))/Math.log(2));
+	   else if(assoc==NoOfBlocks){//full associativity
+		   indexBits=0;
+	   }
+	   else{//set associative 
+		   indexBits = (int)(Math.log((NoOfBlocks/(assoc)))/Math.log(2));
+	   }
+	  
+	   int tagBits = 32-(indexBits+offsetBits);
+	//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
+	   int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
+	 //  System.out.println("Offset: " + offset);
+	   int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits-indexBits),2);
+	 //  System.out.println("Tag: " + tag);
+	   int index = Integer.parseInt(binary.substring(binary.length()-(offsetBits+indexBits),binary.length()-offsetBits),2);
+	  // System.out.println("index value: " + index);
+	   int[] division = {tag,index,offset};
+	   return division;
+	   
+   }
 }
+
+
