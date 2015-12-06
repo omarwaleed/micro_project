@@ -152,6 +152,31 @@ public void execute() {
     //entry.value=val;
     // add other instructions
 }
+////////////////////weam
+public void wb(){
+String value= val;
+//String value="15"; //for testing purpose;
+if(value!=null){
+Entry entry=Scoreboard.rob[dest]; // el mkan elly hakhzn feeh el result
+entry.value=value;
+//System.out.println(entry.dest);
+Scoreboard.p.registers.put(entry.dest, Integer.parseInt(value));
+}
+}
+
+//this method to clear the FU
+public void clearFU(){
+op = null;
+busy=false;
+vj=null;  // source register if ready
+vk=null;  // other source register if exists or ready
+qj=null; // rob entry for source register if not ready
+qk=null; // rob entry for other source register if not ready
+dest= 0; // rob entry 
+a=null; // offset for load and store instructions
+
+}
+/////////////end weam
 
 
 }
