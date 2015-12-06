@@ -276,7 +276,7 @@ public class Processor {
 			
 			Cache c2=cacheLevel.get(i);
 			if(c2!=c){
-				System.err.println("cache no "+i+" ,"+c2.lineSize+", assoc is "+c2.getAssoc());
+				System.err.println("cache no "+i+" ,"+c2.getLineSize() +", assoc is "+c2.getAssoc());
 
 			if(c2.getAssoc()==1){//direct map
 				System.out.println("i am in a direct map");
