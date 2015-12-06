@@ -16,9 +16,9 @@ public class Processor {
 //	cache levels will end with the memory level but to be handled after user input
 	
 	private static int[] register = new int[32];
-	ArrayList<String>lines = new ArrayList<String>();
+	static ArrayList<String>lines = new ArrayList<String>();
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
-	Hashtable<String, String> labels = new Hashtable<String,String>();
+	static Hashtable<String, String> labels = new Hashtable<String,String>();
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -409,6 +409,15 @@ public class Processor {
 		}
 		
 	}
+
+	public static ArrayList<Cache> getCacheLevel() {
+		return cacheLevel;
+	}
+
+	public static void setCacheLevel(ArrayList<Cache> cacheLevel) {
+		Processor.cacheLevel = cacheLevel;
+	}
+
 	/////////////////////////
 	public static void main(String[] args) 
 	{
@@ -478,6 +487,10 @@ public class Processor {
         lines.add("loop: add $t0,$t1,$t4");
 		lines.add("zeft: add $t0,$t1,$t4");
 		System.out.println(p.compile(lines));
+		Cache c1 = new Cache(32, 4, 1, 0, 1);
+		Cache c2 = new Cache(64, 4, 1, 0, 4);
+		cacheLevel.add(c1);
+		cacheLevel.add(c2);
 
 	}
 	 

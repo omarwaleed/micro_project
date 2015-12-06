@@ -34,7 +34,7 @@ public class Cache
 //		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
 		this.size = size;
 		this.lineSize = lineSize;
-		content = new String[size/(lineSize/2)][lineSize+2];//one coloumn for tag,one for valid bit
+		content = new String[size/(lineSize/2)][lineSize+2];//one column for tag,one for valid bit
 		assoc = associativity;
 	}
 	
@@ -119,7 +119,10 @@ public class Cache
 		
 			
 	}
-	public int getAssoc() {
+	public boolean isDirty(int index) {
+		return (content[index][content[0].length-1].equals("1"));
+	}
+ 	public int getAssoc() {
 		return assoc;
 	}
 
@@ -197,18 +200,22 @@ public class Cache
 		   hitRate++;
 		 
 		   if (writePolicy == 1) {
-			   // set the dirty bit here
+			   setDirtyBit(index);
 		   }
-		   if (writePolicy == 2) {
+		   if (writePolicy == 0) {
 			   // write through method here
+			   Processor.writeBackOrThrought(this,Processor.getPhysicalAddressi(index,this),index);
+
 		   }
 	   }
 	   else {
 		   if (writePolicy == 1) {
-			   // write back method here 
+			   // write back method here
+			   if (isDirty(index))
+				   Processor.writeBackOrThrought(this,Processor.getPhysicalAddressi(index,this),index);
 			   
 		   }
-		   if (writePolicy == 2) {
+		   if (writePolicy == 0) {
 			   // write through method here
 		   }
 		   int tag = divide(address)[0];
@@ -298,7 +305,12 @@ public class Cache
 		}
 
 	}
-
+	public String[] read(int address) {
+		if (assoc == 1) // direct mapped cache
+			return readDM(address);
+		else // set and full assoc cache
+			return readsetandfull(address);
+	}
 	public String[] readsetandfull(int address) {
 		int hitindex= hitormiss(address);
 		if (hitindex!=-3) {  // this means hit
@@ -402,7 +414,10 @@ public class Cache
 				content[hitormiss(address)] = data;
 				hitRate++;
 //if miss then we will check if there is an empty block then we will replace it in this block
-			}else{
+			}else if (assoc == 1) { // direct mapped cache
+				writeDM(address,data);
+			}
+			else{ // fully associative cache
 				int[]divide = divide(address);
 				int tag=divide(address)[0];
 				int index= divide(address)[1];  // which will determine the set number in this case
