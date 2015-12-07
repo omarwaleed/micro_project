@@ -617,17 +617,17 @@ public class Processor {
 }
 
 //temporary instruction class... remove when the original is done
-class Instruction
-{
-	String name;
-	String type;
-	String rs;
-	String rd;
-	String rt;
-	
-	public Instruction(String name, String type, String rs, String rd, String rt)
-	{
-		// testing only			
-	};
-
-}
+//class Instruction
+//{
+//	String name;
+//	String type;
+//	String rs;
+//	String rd;
+//	String rt;
+//	
+//	public Instruction(String name, String type, String rs, String rd, String rt)
+//	{
+//		// testing only			
+//	};
+//
+//}
