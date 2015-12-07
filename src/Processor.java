@@ -395,7 +395,7 @@ public class Processor {
 			
 			Cache c2=cacheLevel.get(i);
 			if(c2!=c){
-				System.err.println("cache no "+i+" ,"+c2.lineSize+", assoc is "+c2.getAssoc());
+				System.err.println("cache no "+i+" ,"+c2.getLineSize() +", assoc is "+c2.getAssoc());
 
 			if(c2.getAssoc()==1){//direct map
 				System.out.println("i am in a direct map");
@@ -528,6 +528,15 @@ public class Processor {
 		}
 		
 	}
+
+	public static ArrayList<Cache> getCacheLevel() {
+		return cacheLevel;
+	}
+
+	public static void setCacheLevel(ArrayList<Cache> cacheLevel) {
+		Processor.cacheLevel = cacheLevel;
+	}
+
 	/////////////////////////
 	public static void main(String[] args) 
 	{
@@ -597,6 +606,10 @@ public class Processor {
         lines.add("loop: add $t0,$t1,$t4");
 		lines.add("zeft: add $t0,$t1,$t4");
 		System.out.println(p.compile(lines));
+		Cache c1 = new Cache(32, 4, 1, 0, 1);
+		Cache c2 = new Cache(64, 4, 1, 0, 4);
+		cacheLevel.add(c1);
+		cacheLevel.add(c2);
 
 	}
 	 
