@@ -34,7 +34,7 @@ public class Cache
 //		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
 		this.size = size;
 		this.lineSize = lineSize;
-		content = new String[size/(lineSize/2)][lineSize+2];//one coloumn for tag,one for valid bit
+		content = new String[size/(lineSize/2)][lineSize+2];//one column for tag,one for valid bit
 		assoc = associativity;
 	}
 	
@@ -119,14 +119,49 @@ public class Cache
 		
 			
 	}
-	
+	public boolean isDirty(int index) {
+		return (content[index][content[0].length-1].equals("1"));
+	}
+ 	public int getAssoc() {
+		return assoc;
+	}
+
+	public String[][] getContent() {
+		return content;
+	}
+
+	public void setContent(String[][] content) {
+		this.content = content;
+	}
+
+	public void setAssoc(int assoc) {
+		this.assoc = assoc;
+	}
+
+	public int getNoOFBlocks() {
+		return NoOfBlocks;
+	}
+
+	public int getLineSize() {
+		return lineSize;
+	}
+
+	public void setLineSize(int lineSize) {
+		this.lineSize = lineSize;
+	}
+
+	public void setNoOFBlocks(int noOfBlocks) {
+		NoOfBlocks = noOfBlocks;
+	}
+
 	public void clearDirtyBit(int blockNo){
 		content[blockNo][content[0].length-1]="0";//the block is not valid 
 	}
 	// method to check if the data is already there
 	public boolean hitOrMissDM(int address) {
 		//int[] division = divide(address);
-        int blockNo = size/lineSize;
+
+		int blockNo = size/lineSize;
        // System.err.println("Division: "+Arrays.toString(division));
         int index =  divide(address)[1];
        // System.out.println("index in hitOrMiss " + index);
@@ -165,18 +200,22 @@ public class Cache
 		   hitRate++;
 		 
 		   if (writePolicy == 1) {
-			   // set the dirty bit here
+			   setDirtyBit(index);
 		   }
-		   if (writePolicy == 2) {
+		   if (writePolicy == 0) {
 			   // write through method here
+			   Processor.writeBackOrThrought(this,Processor.getPhysicalAddressi(index,this),index);
+
 		   }
 	   }
 	   else {
 		   if (writePolicy == 1) {
-			   // write back method here 
+			   // write back method here
+			   if (isDirty(index))
+				   Processor.writeBackOrThrought(this,Processor.getPhysicalAddressi(index,this),index);
 			   
 		   }
-		   if (writePolicy == 2) {
+		   if (writePolicy == 0) {
 			   // write through method here
 		   }
 		   int tag = divide(address)[0];
@@ -217,25 +256,222 @@ public class Cache
 	   
    }
    // method that divides the address into tag,index,and offset
-  
-   public int[] divide(int address) {
-	   String binary = Integer.toBinaryString(address);
-	  /// System.out.println(binary.length());
-	   for (int i = binary.length(); i< 32 ;i++) {
-		   binary = "0" + binary;
-	   }
-	  // System.out.println("BinaryString: " + binary);
-	   int indexBits = (int)(Math.log((size/(lineSize)))/Math.log(2))+1;
-	   int offsetBits = (int)(Math.log(lineSize)/Math.log(2));
-	   int tagBits = 32-(indexBits+offsetBits);
-	//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
-	   int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
-	 //  System.out.println("Offset: " + offset);
-	   int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits-indexBits),2);
-	 //  System.out.println("Tag: " + tag);
-	   int index = Integer.parseInt(binary.substring(binary.length()-(offsetBits+indexBits),binary.length()-offsetBits),2);
-	  // System.out.println("index value: " + index);
-	   int[] division = {tag,index,offset};
-	   return division;
-   }
+
+	// method that divides the address into tag,index,and offset for direct mapping
+	public int[] divide(int address) {
+		String binary = Integer.toBinaryString(address);
+		/// System.out.println(binary.length());
+		for (int i = binary.length(); i< 32 ;i++) {
+			binary = "0" + binary;
+		}
+		// System.out.println("BinaryString: " + binary);
+		// assoc = 1 means that it is direct mapping
+
+		if(assoc==1){
+			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2))+1;
+			offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
+			int tagBits = 32-(indexBits+offsetBits);
+			//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
+			int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
+			//  System.out.println("Offset: " + offset);
+			int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits-indexBits),2);
+			//  System.out.println("Tag: " + tag);
+			int index = Integer.parseInt(binary.substring(binary.length()-(offsetBits+indexBits),binary.length()-offsetBits),2);
+			// System.out.println("index value: " + index);
+			int[] division = {tag,index,offset};
+			return division;
+			// if it is set associative
+		}else if(assoc>1 && assoc <NoOfBlocks){
+			int indexBits = (int) ((int)(Math.log(NoOfBlocks/assoc))/Math.log(2))+1;
+			int offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
+			int tagBits = 32-indexBits-offsetBits;
+			// System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
+			int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
+			//System.out.println("Offset: " + offset);
+			int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits-indexBits),2);
+			// System.out.println("Tag: " + tag);
+			int index = Integer.parseInt(binary.substring(binary.length()-(offsetBits+indexBits),binary.length()-offsetBits),2);
+			// System.out.println("index value: " + index);
+			int []division ={tag,index,offset};
+			return division;
+			// if it is fully associative
+		}else{
+			int offsetBits =  (int)(Math.log(getLineSize())/Math.log(2));
+			int tagBits= 32-offsetBits;
+			int offset = Integer.parseInt(binary.substring(binary.length()-offsetBits, binary.length()),2);
+			int tag = Integer.parseInt(binary.substring(0,binary.length()-offsetBits),2);
+			int[]division={tag,offset};
+			return division;
+		}
+
+	}
+	public String[] read(int address) {
+		if (assoc == 1) // direct mapped cache
+			return readDM(address);
+		else // set and full assoc cache
+			return readsetandfull(address);
+	}
+	public String[] readsetandfull(int address) {
+		int hitindex= hitormiss(address);
+		if (hitindex!=-3) {  // this means hit
+			hitRate++;
+			System.out.println(Arrays.toString(getContentOf(hitindex)));
+			return getContentOf(hitindex);
+		}
+		return null;
+	}
+
+	// to detect if hit or miss for both set and fully associative
+	public  int hitormiss(int address){
+		if(assoc>1 && assoc< NoOfBlocks){
+			int[]divide = divide(address);
+			int tag=divide(address)[0];
+			int index= divide(address)[1];  // which will determine the set number in this case
+			int startreadblock = index * assoc ; // this is the first block within the set we have
+			for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
+				if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
+					// check if the valid bit is equal to 1 and our tag is equal to the tag in the cache block.
+					if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
+						// if hit return the index of the hit block in the set and -3 if miss
+						return i;
+					}
+				}
+
+			}
+			return -3;
+		}
+		else if(assoc== NoOfBlocks){
+			System.out.println("ana d5lt hena");
+			int[]divide = divide(address);
+			int tag=divide(address)[0];
+			for(int i= 0; i<NoOfBlocks; i++){
+				if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
+					if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
+						return i;
+					}
+				}
+
+			}
+			return -3;
+		}else{
+			return -3;
+		}
+	}
+
+
+  /*public int hitormissfull(int address){
+	   int[]divide = divide(address);
+	   int tag=divide(address)[0];
+	   for(int i= 0; i<NoOFBlocks; i++){
+		   if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
+			 if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
+			   return i;
+			   }
+			   }
+
+			   }
+			   return -3;
+	   }*/
+
+	public int createrandom(int startreadblock){
+		int endblock= startreadblock+assoc;
+		int num = startreadblock+ (int)(Math.random()*endblock);
+		return startreadblock;
+	}
+	/*public void writefull(int address, String[]data){
+        // if there is a hit
+        if(hitormissfull(address)!=-3){
+            content[hitormissfull(address)]=data;
+            hitRate++;
+        }
+    else{
+         int tag = divide(address)[0];
+               String[] newData = new String[data.length+2];
+               boolean added=false;
+               for(int i = 0; i<data.length;i++) {
+                   newData[i] = data[i];
+               }
+                newData[data.length] = tag+"";
+                newData[data.length+1] = "1";
+        for(int i=0 ; i<NoOFBlocks; i++){
+            if(content[i][content[i].length-2]==null){
+                   content[i] = newData; // replace
+                   added=true;
+                   break;
+
+            }
+        }
+        if(added=false){
+            int random= 0+ (int)(Math.random()*NoOFBlocks);
+            content[random]=newData;
+        }
+    }
+    }*/
+	public void write(int address , String[]data){
+// if there is hit (tag equals tag) then we will replace the content of this block to the data
+		if(assoc>1 && assoc< NoOfBlocks){
+			if(hitormiss(address)!=-3){
+				content[hitormiss(address)] = data;
+				hitRate++;
+//if miss then we will check if there is an empty block then we will replace it in this block
+			}else if (assoc == 1) { // direct mapped cache
+				writeDM(address,data);
+			}
+			else{ // fully associative cache
+				int[]divide = divide(address);
+				int tag=divide(address)[0];
+				int index= divide(address)[1];  // which will determine the set number in this case
+				int startreadblock = index * assoc ;// this is the first block within the set we have
+				// added checks if the content is put in an empty block or we have to replace.
+				String[] newData = new String[data.length+2];
+				boolean added=false;
+				for(int i = 0; i<data.length;i++) {
+					newData[i] = data[i];
+				}
+				newData[data.length] = tag+"";
+				newData[data.length+1] = "1";
+				for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
+					if(content[i][content[i].length-2]==null){
+						content[i] = newData; // replace
+						added=true;
+						break;
+					}
+				}
+				if(added=false){
+					// insert the block in a random number within the set
+					int random= createrandom(startreadblock);
+					content[random]=newData;
+				}
+			}
+		}else if(assoc== NoOfBlocks){
+			// if there is a hit
+			if(hitormiss(address)!=-3){
+				content[hitormiss(address)]=data;
+				hitRate++;
+			}
+			else{
+				int tag = divide(address)[0];
+				String[] newData = new String[data.length+2];
+				boolean added=false;
+				for(int i = 0; i<data.length;i++) {
+					newData[i] = data[i];
+				}
+				newData[data.length] = tag+"";
+				newData[data.length+1] = "1";
+				for(int i=0 ; i<NoOfBlocks; i++){
+					if(content[i][content[i].length-2]==null){
+						content[i] = newData; // replace
+						added=true;
+						break;
+
+					}
+				}
+				if(added=false){
+					int random= 0+ (int)(Math.random()*NoOfBlocks);
+					content[random]=newData;
+				}
+			}
+		}
+	}
+
 }

@@ -3,6 +3,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,8 +19,10 @@ public class Processor {
 	private static int[] register = new int[32];
 	static ArrayList<String>lines = new ArrayList<String>();
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
-	Hashtable<String, String> labels = new Hashtable<String,String>();
+	private static ArrayList <Cache> iCache;
+	static Hashtable<String, String> labels = new Hashtable<String,String>();
 	static int PC;
+	static int cycles = 0;
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -212,7 +215,7 @@ public class Processor {
 		
 		
 		
-		// instruction(name, type, rs, rd, rt)
+		// instruction(name, type, rd, rs, rt)
 		Instruction[] fetched = new Instruction[4];
 		
 		for (int i = 0; i < fetched.length; i++) 
@@ -221,20 +224,94 @@ public class Processor {
 			// create an object of that instruction
 			// add it to the array
 			String tempLine = lines.get(PC+ i);
-			String [] sLine = tempLine.split(" ");
+			if (tempLine == null) 
+			{
+				System.out.println("Reached end of input");
+				return fetched;
+			}
+			
+			String [] sLine;
+			if (tempLine.contains(":")) 
+			{
+				sLine = tempLine.split(":")[1].split(" ");
+			}
+			else
+			{
+				sLine = tempLine.split(" ");
+			}
 			String [] regs = sLine[1].split(",");
 			
-			switch (sLine[0].toLowerCase()) 
+//			not really sure of how correct is my call to the hitOrMiss method
+			for (int j = 0; j < iCache.size(); j++) 
 			{
-			case "add": fetched[i] = new Instruction("Add", "Add", regs[0], regs[1], regs[2]); break;
-			case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
-			case "beq": fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], regs[2]); break;
-			case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
-			case "store": fetched[i] = new Instruction("store", "load", regs[0], regs[1], regs[2]); break;
-			case "mult": fetched[i] = new Instruction("mult", "mult", regs[0], regs[1], regs[2]); break;
-			case "div": fetched[i] = new Instruction("div", "mult", regs[0], regs[1], regs[2]); break;
+				if (iCache.get(j).hitOrMissDM(PC+1)) 
+				{
+					// this should add to fetched[i] the content of the iCache at j which is supposed to be an instruction but its not
+					// the cache is read and parsed into a new instruction which is put in the fetched array
+					String [] read = iCache.get(j).readDM(PC);
+					fetched[i] = new Instruction(read[0], read[1], read[2], read[3], read[4]);
+					cycles += 1;
+				}
+				else
+				{
+					
+					cycles += iCache.get(j).getCycles();
+					switch (sLine[0].toLowerCase()) 
+					{
+					case "add": fetched[i] = new Instruction("Add", "Add", regs[0], regs[1], regs[2]); break;
+					case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
+					case "beq":
+						// if the content of regs[2] is present in the labels get its PC value from the hashtable
+						// else put the number directly
+						
+						// NOTE THAT
+						// the "beq" instruction should depend on the offset and it is not handled...yet
+						if (labels.containsKey(regs[2])) 
+						{
+							fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], labels.get(regs[2]));
+						}
+						else
+						{
+							fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
+						} 
+						break;
+					case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
+					case "store": fetched[i] = new Instruction("store", "load", regs[0], regs[1], regs[2]); break;
+					case "mult": fetched[i] = new Instruction("mult", "mult", regs[0], regs[1], regs[2]); break;
+					case "div": fetched[i] = new Instruction("div", "mult", regs[0], regs[1], regs[2]); break;
+					case "jalr":
+						int saveTo = Integer.parseInt(regs[0].toLowerCase().split("r")[1]);
+						if (saveTo > 31 || saveTo < 1) 
+						{
+							System.out.println("Sth is wrong with the register to save to in jalr in fetch method");
+						}
+						else
+						{
+							register[saveTo] = PC+1;
+							PC = Integer.parseInt(regs[1]);
+						}
+						fetched[i] = new Instruction("jarl", "add", regs[0], regs[1], regs[2]);
+						break;
+						// keep in mind here it assumes that the registers will be from 0 to 31
+						// if out of bounds it will give a null pointer exception which indicates compiling error for user
+					case "ret":
+						PC = register[Integer.parseInt(regs[0])];
+						fetched[i] = new Instruction("jarl", "add", regs[0], null, null);
+						break;
+					case "jmp":
+						PC = register[Integer.parseInt(regs[0])];
+						fetched[i] = new Instruction("jarl", "add", regs[0], regs[1], null);
+						break;
+					case "nand": fetched[i] = new Instruction("nand", "add", regs[0], regs[1], regs[2]); break;
+					case "addi": fetched[i] = new Instruction("addi", "add", regs[0], regs[1], regs[2]); break;
 
-			default: System.out.println("Something is wrong in fetch() switch statement");break;
+					default: System.out.println("Something is wrong in fetch() switch statement");break;
+					}
+					// writes the fetched instruction to the iCache					
+					iCache.get(j).writeDM(PC, fetched[i].toString().substring(1, fetched[i].toString().length()-1).split(","));
+					// always increment the PC after each fetch
+					PC++;
+				}
 			}
 		}
 		
@@ -318,7 +395,7 @@ public class Processor {
 			
 			Cache c2=cacheLevel.get(i);
 			if(c2!=c){
-				System.err.println("cache no "+i+" ,"+c2.lineSize+", assoc is "+c2.getAssoc());
+				System.err.println("cache no "+i+" ,"+c2.getLineSize() +", assoc is "+c2.getAssoc());
 
 			if(c2.getAssoc()==1){//direct map
 				System.out.println("i am in a direct map");
@@ -451,6 +528,15 @@ public class Processor {
 		}
 		
 	}
+
+	public static ArrayList<Cache> getCacheLevel() {
+		return cacheLevel;
+	}
+
+	public static void setCacheLevel(ArrayList<Cache> cacheLevel) {
+		Processor.cacheLevel = cacheLevel;
+	}
+
 	/////////////////////////
 	public static void main(String[] args) 
 	{
@@ -513,13 +599,17 @@ public class Processor {
 		}
 
 		cacheLevel.add(new Cache(64*1024, 16, 1, 0, memoryTime));
-		
+		iCache = new ArrayList<Cache>(cacheLevel);		
 		Processor p = new Processor();
 		ArrayList<String> lines = new ArrayList<String>();
 		lines.add("add $t0,$t1,$t4");
         lines.add("loop: add $t0,$t1,$t4");
 		lines.add("zeft: add $t0,$t1,$t4");
 		System.out.println(p.compile(lines));
+		Cache c1 = new Cache(32, 4, 1, 0, 1);
+		Cache c2 = new Cache(64, 4, 1, 0, 4);
+		cacheLevel.add(c1);
+		cacheLevel.add(c2);
 
 	}
 	 
