@@ -246,8 +246,10 @@ public class Processor {
 			{
 				if (iCache.get(j).hitOrMissDM(PC+1)) 
 				{
-					// this should add to fetched[i] the content of the iCache at j which is supposed to be an instruction but its not so leaving it for later
-					
+					// this should add to fetched[i] the content of the iCache at j which is supposed to be an instruction but its not
+					// the cache is read and parsed into a new instruction which is put in the fetched array
+					String [] read = iCache.get(j).readDM(PC);
+					fetched[i] = new Instruction(read[0], read[1], read[2], read[3], read[4]);
 					cycles += 1;
 				}
 				else
@@ -258,11 +260,12 @@ public class Processor {
 					{
 					case "add": fetched[i] = new Instruction("Add", "Add", regs[0], regs[1], regs[2]); break;
 					case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
-					//					case "addi": fetched[i] = new Instruction("Addi", "Add", regs[0], regs[1], regs[2]); break;
-					//					case "nand": fetched[i] = new Instruction("Nand", "Add", regs[0], regs[1], regs[2]); break;
 					case "beq":
 						// if the content of regs[2] is present in the labels get its PC value from the hashtable
 						// else put the number directly
+						
+						// NOTE THAT
+						// the "beq" instruction should depend on the offset and it is not handled...yet
 						if (labels.containsKey(regs[2])) 
 						{
 							fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], labels.get(regs[2]));
@@ -304,6 +307,8 @@ public class Processor {
 
 					default: System.out.println("Something is wrong in fetch() switch statement");break;
 					}
+					// writes the fetched instruction to the iCache					
+					iCache.get(j).writeDM(PC, fetched[i].toString().substring(1, fetched[i].toString().length()-1).split(","));
 					// always increment the PC after each fetch
 					PC++;
 				}
