@@ -8,11 +8,23 @@ public class Instruction {
     String rd;
     String type;
     public Instruction(String n, String source1, String source2, String dest,String t) {
-        name = n;
-        rs = source1;
-        rt = source2;
-        rd = dest;
-        type = t;
+    	
+    	// checks if source1 contsins a number then use amal's default else use omar's instruction call
+    	if (source1.matches(".*[0-9].*")) 
+    	{
+            name = n;
+            rs = source1;
+            rt = source2;
+            rd = dest;
+            type = t;
+		}
+    	else {
+			name = n;
+			type = source1;
+			rd = source2;
+			rs = dest;
+			rd = t;
+		}
     }
     public String toString() {
         return "[Name: " + name + ", rs: " + rs + ", rt: " + rt + ", rd: " + rd + "Type: " + type + "]";
