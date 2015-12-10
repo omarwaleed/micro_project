@@ -537,6 +537,15 @@ public class Processor {
 		Processor.cacheLevel = cacheLevel;
 	}
 
+	public static String[] cacheAccesRead() {
+         return null;
+		// TO-DO implement read method for memory hierarchy
+	}
+
+
+
+
+
 	/////////////////////////
 	public static void main(String[] args) 
 	{

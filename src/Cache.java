@@ -307,7 +307,7 @@ public class Cache
 		// assoc = 1 means that it is direct mapping
 
 		if(assoc==1){
-			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2));
+			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2))+1;
 			offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
 			int tagBits = 32-(indexBits+offsetBits);
 			//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
@@ -367,11 +367,22 @@ public class Cache
 			int tag=divide(address)[0];
 			int index= divide(address)[1];  // which will determine the set number in this case
 			int startreadblock = index * assoc ; // this is the first block within the set we have
-			for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
+  /* System.out.println("tag "+ tag);
+   System.out.println("index"+ index);
+   System.out.println("start block "+ startreadblock);
+   System.out.println();
+   System.out.println();*/
+			for(int i=startreadblock ; i<startreadblock+assoc ; i++){
+				//  System.out.println("startblock "+ startreadblock);
 				if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
 					// check if the valid bit is equal to 1 and our tag is equal to the tag in the cache block.
-					if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
+	 /*  System.out.println(i+" "+content[i][content[i].length-2]);
+	   System.out.println("My tag"+ tag);*/
+					if(writePolicy==1 && content[i][content[i].length-2].equals("1") && content[i][content[i].length-3].equals(tag+"")){
 						// if hit return the index of the hit block in the set and -3 if miss
+						// System.out.println("ana hena yabn el 7alal");
+						return i;
+					}else if(writePolicy==0 && content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
 						return i;
 					}
 				}
@@ -380,12 +391,14 @@ public class Cache
 			return -3;
 		}
 		else if(assoc== NoOfBlocks){
-			System.out.println("ana d5lt hena");
+			// System.out.println("ana d5lt hena");
 			int[]divide = divide(address);
 			int tag=divide(address)[0];
 			for(int i= 0; i<NoOfBlocks; i++){
 				if(content!= null && content[i]!=null && content[i][content[i].length-1] != null && content[i][content[i].length-2]!=null ){
-					if(content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
+					if( writePolicy==1 && content[i][content[i].length-2].equals("1") && content[i][content[i].length-3].equals(tag+"")){
+						return i;
+					}else if (writePolicy==0 && content[i][content[i].length-1].equals("1") && content[i][content[i].length-2].equals(tag+"")){
 						return i;
 					}
 				}
@@ -396,6 +409,7 @@ public class Cache
 			return -3;
 		}
 	}
+
 
 
   /*public int hitormissfull(int address){
@@ -448,69 +462,202 @@ public class Cache
     }*/
 	public void write(int address , String[]data){
 // if there is hit (tag equals tag) then we will replace the content of this block to the data
-		if(assoc>1 && assoc< NoOfBlocks){
-			if(hitormiss(address)!=-3){
-				content[hitormiss(address)] = data;
+		// System.out.println(NoOFBlocks);
+		if (assoc == 1)
+			writeDM(address,data);
+		else  if(assoc>1 && assoc< NoOfBlocks){
+			int[]divide = divide(address);
+			int tag=divide(address)[0];
+			int index= divide(address)[1];  // which will determine the set number in this case
+			int startreadblock = index * assoc ;// this is the first block within the set we have
+			//System.out.println("ana hena");
+			if(hitormiss(address)!=-3){ // hit
+				// writepolicy 0 -> writethrough
+				//writepolicy 1 -> writeback
+
+				if(writePolicy==1){ //write back
+					String[]newData = new String[data.length+3];
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					newData[data.length] = tag+""; // set new data (newdata.length) to tag;
+					newData[data.length+1] = "1"; // set valid bit to 1
+					newData[data.length+2]= "1"; // set dirty bit to 1
+					content[hitormiss(address)] = newData;
+
+				}else   //writethrough
+				{
+					String[]newData = new String[data.length+2];
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					//System.out.println("ana hena");
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1";
+
+					content[hitormiss(address)] = newData;
+
+					Processor.writeBackOrThrought(this, Processor.getPhysicalAddressi(index, this), index);
+
+				}
 				hitRate++;
 //if miss then we will check if there is an empty block then we will replace it in this block
-			}else if (assoc == 1) { // direct mapped cache
-				writeDM(address,data);
-			}
-			else{ // fully associative cache
-				int[]divide = divide(address);
-				int tag=divide(address)[0];
-				int index= divide(address)[1];  // which will determine the set number in this case
-				int startreadblock = index * assoc ;// this is the first block within the set we have
+			}else{ // miss
+
 				// added checks if the content is put in an empty block or we have to replace.
-				String[] newData = new String[data.length+2];
+
 				boolean added=false;
-				for(int i = 0; i<data.length;i++) {
-					newData[i] = data[i];
-				}
-				newData[data.length] = tag+"";
-				newData[data.length+1] = "1";
-				for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
-					if(content[i][content[i].length-2]==null){
-						content[i] = newData; // replace
-						added=true;
-						break;
+				if(writePolicy==1){
+					String[] newData = new String[data.length+3];
+					int variable=0;
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1";
+					newData[data.length+2]="0";
+					//   System.out.println("index "+index);
+
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
 					}
-				}
-				if(added=false){
-					// insert the block in a random number within the set
-					int random= createrandom(startreadblock);
-					content[random]=newData;
-				}
-			}
-		}else if(assoc== NoOfBlocks){
-			// if there is a hit
-			if(hitormiss(address)!=-3){
-				content[hitormiss(address)]=data;
-				hitRate++;
-			}
-			else{
-				int tag = divide(address)[0];
-				String[] newData = new String[data.length+2];
-				boolean added=false;
-				for(int i = 0; i<data.length;i++) {
-					newData[i] = data[i];
-				}
-				newData[data.length] = tag+"";
-				newData[data.length+1] = "1";
-				for(int i=0 ; i<NoOfBlocks; i++){
-					if(content[i][content[i].length-2]==null){
-						content[i] = newData; // replace
-						added=true;
-						break;
+
+					for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
+
+						if(content[i][content[i].length-2]==null){
+							//System.out.println("in the if condition");
+							content[i] = newData; // replace
+							added=true;
+							variable=i;
+							break;
+						}
 
 					}
+					//System.err.println("content b3d el loop: " + Arrays.toString(content[variable]));
+
+					if(added==false){
+						// insert the block in a random number within the set
+						int random= createrandom(startreadblock);
+						variable=random;
+						content[random]=newData;
+					}
+					//Processor.get
+					//System.out.println("test "+Processor.getPhysicalAddressi(variable, this));
+					Processor.writeBackOrThrought(this, Processor.getPhysicalAddressi(variable, this), variable);
+				}else //writethrough
+				{
+					//System.out.println("ana hena");
+					String[] newData = new String[data.length+2];
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1";
+					// System.out.println("ana hena");
+
+					for(int i=startreadblock ; i<=startreadblock+assoc ; i++){
+						content[i] = new String[data.length+1];
+
+						if(content[i][content[i].length-2]==null){
+							content[i] = newData; // replace
+							added=true;
+							break;
+						}
+					}
+
+					if(added==false){
+						// insert the block in a random number within the set
+						int random= createrandom(startreadblock);
+						content[random]=newData;
+					}
 				}
-				if(added=false){
-					int random= 0+ (int)(Math.random()*NoOfBlocks);
-					content[random]=newData;
+			}
+		}else if(assoc== NoOfBlocks){ //fullllllly associative
+			// if there is a hit
+			int tag = divide(address)[0];
+
+			if(hitormiss(address)!=-3){
+				int hitblock= hitormiss(address);
+				if(writePolicy==1){ // write back full
+					String[]newData = new String[data.length+3];
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					newData[data.length] = tag+""; // set new data (newdata.length) to tag;
+					newData[data.length+1] = "1"; // set valid bit to 1
+					newData[data.length+2]= "1"; // set dirty bit to 1
+					content[hitormiss(address)] = newData;
+
+
+				}else{ //writethrough full
+					String[]newData = new String[data.length+2];
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1"; // valid bit to 1
+
+					content[hitormiss(address)] = newData;
+
+					Processor.writeBackOrThrought(this, Processor.getPhysicalAddressi(hitblock, this), hitblock);
+
+				}
+				hitRate++;
+			}
+			else{  //miss
+				if(writePolicy==1){ //writeback
+					String[] newData = new String[data.length+3];
+					boolean added=false;
+					int variable=0;
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1";
+					newData[data.length+2] ="1";
+
+					for(int i=0 ; i<NoOfBlocks; i++){
+						if(content[i][content[i].length-2]==null){
+							content[i] = newData; // replace
+							added=true;
+							variable=i;
+							break;
+
+						}
+					}
+					if(added==false){
+						int random= 0+ (int)(Math.random()*NoOfBlocks);
+						variable=random;
+						content[random]=newData;
+					}
+					Processor.writeBackOrThrought(this, Processor.getPhysicalAddressi(variable, this), variable);
+				}else{  //write through
+					String[] newData = new String[data.length+2];
+					boolean added=false;
+					int variable=0;
+					for(int i = 0; i<data.length;i++) {
+						newData[i] = data[i];
+					}
+					newData[data.length] = tag+"";
+					newData[data.length+1] = "1";
+
+					for(int i=0 ; i<NoOfBlocks; i++){
+						if(content[i][content[i].length-2]==null){
+							content[i] = newData; // replace
+							added=true;
+							variable=i;
+							break;
+
+						}
+					}
+					if(added==false){
+						int random= 0+ (int)(Math.random()*NoOfBlocks);
+						variable=random;
+						content[random]=newData;
+					}
+
 				}
 			}
 		}
 	}
+
+
 
 }

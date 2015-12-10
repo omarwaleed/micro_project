@@ -83,44 +83,44 @@ public class CacheTest {
          assertArrayEquals(expected1,c.divide(221*4));
     }
 
-//	@Test
-//	public void testMemoryHDMWRTH(){ // direct map write through
-//		Cache c1 = new Cache(32, 4, 1, 0, 1);
-//		Cache c2 = new Cache(64, 4, 1, 0, 4);
-//		Cache main = new Cache(128,4,128,0,10);
-//		String[] s = {"Hello","World"};
-//		c1.write(1*4, s);
-//		c1.write(134*4,s);
-//		c1.write(212*4, s);
-//		c1.write(1*4, s);
-//		c1.write(135*4,s);
-//		c1.write(213*4,s);
-//		c1.write(162*4,s);
-//		c1.write(161*4,s);
-//		c1.write(2*4,s);
-//		c1.write(44*4,s);
-//		c1.write(41*4,s);
-//		c1.write(221*4,s);
-//
-//		c2.write(1*4, s);
-//		c2.write(134*4,s);
-//		c2.write(212*4, s);
-//		c2.write(1*4, s);
-//		c2.write(135*4,s);
-//		c2.write(213*4,s);
-//		c2.write(162*4,s);
-//		c2.write(161*4,s);
-//		c2.write(2*4,s);
-//		c2.write(44*4,s);
-//		c2.write(41*4,s);
-//		c2.write(221*4,s);
-//		Processor.getCacheLevel().add(c1);
-//		Processor.getCacheLevel().add(c2);
-//		Processor.getCacheLevel().add(main);
-//
-//		//assertEquals(3,c1.getHitRate());
-//
-//	}
+	@Test
+	public void testMemoryHDMWRTH(){ // direct map write through
+		Cache c1 = new Cache(32, 4, 1, 0, 1);
+		Cache c2 = new Cache(64, 4, 1, 0, 4);
+		Cache main = new Cache(128,4,128,0,10);
+		String[] s = {"Hello","World"};
+		c1.write(1*4, s);
+		c1.write(134*4,s);
+		c1.write(212*4, s);
+		c1.write(1*4, s);
+		c1.write(135*4,s);
+		c1.write(213*4,s);
+		c1.write(162*4,s);
+		c1.write(161*4,s);
+		c1.write(2*4,s);
+		c1.write(44*4,s);
+		c1.write(41*4,s);
+		c1.write(221*4,s);
+
+		c2.write(1*4, s);
+		c2.write(134*4,s);
+		c2.write(212*4, s);
+		c2.write(1*4, s);
+		c2.write(135*4,s);
+		c2.write(213*4,s);
+		c2.write(162*4,s);
+		c2.write(161*4,s);
+		c2.write(2*4,s);
+		c2.write(44*4,s);
+		c2.write(41*4,s);
+		c2.write(221*4,s);
+		Processor.getCacheLevel().add(c1);
+		Processor.getCacheLevel().add(c2);
+		Processor.getCacheLevel().add(main);
+
+		//assertEquals(3,c1.getHitRate());
+
+	}
    @Test
    public void testRead() {
 	   Cache c = new Cache(64, 4, 1, 0, 1);
