@@ -34,7 +34,7 @@ public class Cache
 //		size of each indexed value will depend on the line size since the cache has a fixed number of inputs
 		this.size = size;
 		this.lineSize = lineSize;
-		content = new String[size/(lineSize/2)][lineSize+2];//one column for tag,one for valid bit
+		content = new String[size/lineSize][lineSize+2];//one column for tag,one for valid bit
 		assoc = associativity;
 	}
 	
@@ -68,11 +68,11 @@ public class Cache
 		this.size = size;
 		this.lineSize = lineSize;
 		if(writePolicy==0)//write through
-			content = new String[size/lineSize][lineSize+2];//tag will be stored and valid bit
+			content = new String[size/(lineSize/2)][lineSize+2];//tag will be stored and valid bit
 		else //note that the last byte is the valid bit(write back)
 			{
 			//write back
-				content = new String[size/lineSize][lineSize+3];//tag,valid and dirty bit
+				content = new String[size/(lineSize/2)][lineSize+3];//tag,valid and dirty bit
 				for (int i = 0; i <content.length ; i++) {
 					content[i][content[i].length-1]="0";//dirty bit
 					content[i][content[i].length-2]="0";//valid bit
@@ -120,7 +120,7 @@ public class Cache
 			
 	}
 	public boolean isDirty(int index) {
-		return (content[index][content[0].length-1].equals("1"));
+		return (content[index][content[index].length-1].equals("1"));
 	}
  	public int getAssoc() {
 		return assoc;
@@ -159,30 +159,38 @@ public class Cache
 	}
 	// method to check if the data is already there
 	public boolean hitOrMissDM(int address) {
-		//int[] division = divide(address);
+		int[] division = divide(address);
 
-		int blockNo = size/lineSize;
-       // System.err.println("Division: "+Arrays.toString(division));
-        int index =  divide(address)[1];
-       // System.out.println("index in hitOrMiss " + index);
-        int tag =  divide(address)[0];
-       // System.out.println("index " + index + " tag " + tag);
-       // System.err.println("index value " + index + " "+content.length );
-         if (content != null && content[index] != null && content[index][content[index].length-1] != null && content[index][content[index].length-2] != null){
-			 return !(content[index][content[index].length - 1].equals("0") || !content[index][content[index].length - 2].equals(tag + ""));
-         }
-         return false;
-            
+		int blockNo = size / lineSize;
+		// System.err.println("Division: "+ Arrays.toString(division));
+		int index = divide(address)[1];
+		// System.out.println("index in hitOrMiss " + index);
+		int tag = divide(address)[0];
+		// System.out.println("index " + index + " tag " + tag);
+		 //System.err.println("index value " + index + " "+content.length );
+		if (writePolicy == 0) {
+			if (content != null && index < content.length && content[index] != null && content[index][content[index].length - 1] != null && content[index][content[index].length - 2] != null) {
+				return !(content[index][content[index].length - 1].equals("0") || !content[index][content[index].length - 2].equals(tag + ""));
+			}
+		}
+		if (writePolicy == 1) {
+			if (content != null && index < content.length && content[index] != null && content[index][content[index].length - 2] != null && content[index][content[index].length - 3] != null) {
+				return !(content[index][content[index].length - 2].equals("0") || !content[index][content[index].length - 3].equals(tag + ""));
+			}
+
+
+		}
+		return false;
 	}
 	//method to read from cache 
    
    public String[] readDM(int address) {
 	   int blockNo = size/lineSize;
        int index = divide(address)[1];
-       
+       System.err.println(divide(address)[0] + " " + content.length);
 	   if (hitOrMissDM(address)) {
               hitRate++;
-           System.out.println(Arrays.toString(getContentOf(index)));
+           System.err.println(Arrays.toString(getContentOf(index)));
 		   return getContentOf(index);
 	   }
 	  return null;
@@ -195,39 +203,70 @@ public class Cache
 	   int index = divide(address)[1];
 	   int offset = getOffset();
 	 //  System.err.println("Hit? : " + hitOrMissDM(address) + " block number " + blockNo);
-	   if (hitOrMissDM(address)) {
-		   content[index] = data; 
+	   if (hitOrMissDM(address)) { // hit
+		   //content[index] = data;
+
 		   hitRate++;
 		 
-		   if (writePolicy == 1) {
-			   setDirtyBit(index);
+		   if (writePolicy == 1) { // write back
+			   int tag = divide(address)[0];
+			   String[] newData = new String[data.length+3];
+			   for(int i = 0; i<data.length;i++) {
+				   newData[i] = data[i];
+			   }
+			   newData[data.length] = tag+"";
+			   newData[data.length+1] = "1";
+			   newData[data.length+2] = "1"; // set dirty bit
+
+			   //  System.err.println(Arrays.toString(newData));
+			   content[index] = newData; // replace
 		   }
 		   if (writePolicy == 0) {
 			   // write through method here
+			   int tag = divide(address)[0];
+			   String[] newData = new String[data.length+2];
+			   for(int i = 0; i<data.length;i++) {
+				   newData[i] = data[i];
+			   }
+			   newData[data.length] = tag+"";
+			   newData[data.length+1] = "1";
+			   //  System.err.println(Arrays.toString(newData));
+			   content[index] = newData;
 			   Processor.writeBackOrThrought(this,Processor.getPhysicalAddressi(index,this),index);
 
 		   }
 	   }
-	   else {
-		   if (writePolicy == 1) {
+	   else { // miss
+		   if (writePolicy == 1) { // write back
 			   // write back method here
 			   if (isDirty(index))
-				   Processor.writeBackOrThrought(this,Processor.getPhysicalAddressi(index,this),index);
+				   Processor.writeBackOrThrought(this, Processor.getPhysicalAddressi(index, this), index);
+			   int tag = divide(address)[0];
+			   String[] newData = new String[data.length+3];
+			   for(int i = 0; i<data.length;i++) {
+				   newData[i] = data[i];
+			   }
+			   newData[data.length] = tag+"";
+			   newData[data.length+1] = "1";
+			   System.err.println(Arrays.toString(newData));
+			   newData[data.length+2] = "0";
+			   System.err.println(Arrays.toString(newData));
+			   if (index < content.length)
+				   content[index] = newData; // replace
 			   
+		   } else { // write through
+
+			   int tag = divide(address)[0];
+			   String[] newData = new String[data.length + 2];
+			   for (int i = 0; i < data.length; i++) {
+				   newData[i] = data[i];
+			   }
+			   newData[data.length] = tag + "";
+			   newData[data.length + 1] = "1";
+			   System.err.println(Arrays.toString(newData));
+			   if (index < content.length)
+				   content[index] = newData; // replace
 		   }
-		   if (writePolicy == 0) {
-			   // write through method here
-		   }
-		   int tag = divide(address)[0];
-		   String[] newData = new String[data.length+2];
-		   for(int i = 0; i<data.length;i++) {
-			   newData[i] = data[i];
-		   }
-		   newData[data.length] = tag+"";
-		   newData[data.length+1] = "1";
-		//  System.err.println(Arrays.toString(newData));
-		   content[index] = newData; // replace 
-		   
 	   }
 	   
    }
@@ -268,7 +307,7 @@ public class Cache
 		// assoc = 1 means that it is direct mapping
 
 		if(assoc==1){
-			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2))+1;
+			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2));
 			offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
 			int tagBits = 32-(indexBits+offsetBits);
 			//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);

@@ -223,18 +223,18 @@ public class Processor {
 			while(index.length()<c.indexBits){
 				index="0"+index;
 			}
-			System.out.println("index is "+ index);
-			System.out.println(c.getContent()[BlockNo][c.getContent()[BlockNo].length-2]);
-			if(c.getWritePolicy()==0){
+			//System.out.println("index is "+ index);
+			//System.out.println(Arrays.toString(c.getContentOf(BlockNo)));
+			if(c.getWritePolicy()==0){ //write through
 				
 				tmp=Integer.toBinaryString(Integer.parseInt(c.getContent()[BlockNo][c.getContent()[BlockNo].length-2]))+index;
 						//Integer.toBinaryString(c.offsetBits);
 				//tmp2=(Integer.parseInt(c.getContent()[BlockNo][c.getContent().length-2])/(1-(1/c.getNoOFBlocks())*c.getNoOFBlocks()));
 				}
-				else{
+				else{ //write back
 					//tmp2=(Integer.parseInt(c.getContent()[BlockNo][c.getContent().length-3])/(1-(1/c.getNoOFBlocks())*c.getNoOFBlocks()));
 
-					
+
 					tmp=Integer.toBinaryString(Integer.parseInt(c.getContent()[BlockNo][c.getContent()[BlockNo].length-3]))+index;
 							//Integer.toBinaryString(c.offsetBits);;	
 				}
