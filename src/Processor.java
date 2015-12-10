@@ -537,14 +537,13 @@ public class Processor {
 		Processor.cacheLevel = cacheLevel;
 	}
 
-	public static String[] cacheAccesRead() {
+	public static String[] cacheAccesRead(int address) {
          return null;
 		// TO-DO implement read method for memory hierarchy
 	}
-
-
-
-
+	public static void cacheAccessWrite(int address, String[] data) {
+		//implement write to memory level
+	}
 
 	/////////////////////////
 	public static void main(String[] args) 
