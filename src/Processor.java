@@ -2,6 +2,7 @@
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
@@ -864,6 +865,9 @@ public class Processor {
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO
 				// compile the code by taking all arguments from the fields
+				
+				// take the input and put it in a text file
+				File input = new File("input.txt", code_area.getText());
 			}
 		});
 		btnRunCode.setBounds(578, 162, 97, 25);
