@@ -1,17 +1,31 @@
 
 
+import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.util.*;
+
+import javax.swing.JFrame;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import java.awt.Font;
+import javax.swing.JTextArea;
+import javax.swing.JList;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 // this class handles the processor functions and contains all the processor registers
 
 public class Processor {
+	
+	private static JFrame frame;
 	
 //	Initialize the registers and the cache levels
 //	cache levels will end with the memory level but to be handled after user input
@@ -23,6 +37,24 @@ public class Processor {
 	static Hashtable<String, String> labels = new Hashtable<String,String>();
 	static int PC;
 	static int cycles = 0;
+	private static JTextField addi_number;
+	private static JTextField addd_number;
+	private static JTextField cache_levels_field;
+	private static JTextField line_size_field;
+	private static JTextField n_ways_field;
+	private static JTextField write_policy_field;
+	private static JTextField number_of_cycles_field;
+	private static JTextField memory_access_time_field;
+	private static JTextField instruction_queue_field;
+	private static JTextField rob_entries_field;
+	private static JTextField multd_number;
+	private static JTextField load_number;
+	private static JTextField store_number;
+	private static JTextField addi_cycles;
+	private static JTextField addd_cycles;
+	private static JTextField multd_cycles;
+	private static JTextField load_cycles;
+	private static JTextField store_cycles;
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -548,6 +580,20 @@ public class Processor {
 	/////////////////////////
 	public static void main(String[] args) 
 	{
+		initialize();
+		/* GUI STUFF */
+		EventQueue.invokeLater(new Runnable() {
+
+			public void run() {
+				try {
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		/* the rest */
 		
 		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
 
@@ -620,8 +666,209 @@ public class Processor {
 		cacheLevel.add(c2);
 
 	}
-	 
 
+	/**
+	 * Launch the application.
+	 */
+
+//	/**
+//	 * Create the application.
+//	 */
+//	public GUI() {
+//		initialize();
+//	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private static void initialize() {
+		frame = new JFrame();
+		frame.setBounds(100, 100, 733, 482);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.getContentPane().setLayout(null);
+		
+		JLabel lblAddi = new JLabel("ADD.I");
+		lblAddi.setBounds(264, 42, 38, 16);
+		frame.getContentPane().add(lblAddi);
+		
+		JLabel lblAddd = new JLabel("ADD.D");
+		lblAddd.setBounds(264, 71, 38, 16);
+		frame.getContentPane().add(lblAddd);
+		
+		addi_number = new JTextField();
+		addi_number.setBounds(347, 39, 56, 22);
+		frame.getContentPane().add(addi_number);
+		addi_number.setColumns(10);
+		
+		addd_number = new JTextField();
+		addd_number.setBounds(347, 68, 56, 22);
+		frame.getContentPane().add(addd_number);
+		addd_number.setColumns(10);
+		
+		JLabel lblCacheLevels = new JLabel("Cache Levels");
+		lblCacheLevels.setBounds(12, 13, 79, 16);
+		frame.getContentPane().add(lblCacheLevels);
+		
+		cache_levels_field = new JTextField();
+		cache_levels_field.setBounds(139, 10, 56, 22);
+		frame.getContentPane().add(cache_levels_field);
+		cache_levels_field.setColumns(10);
+		
+		JLabel lblLineSize = new JLabel("Line Size");
+		lblLineSize.setBounds(12, 42, 56, 16);
+		frame.getContentPane().add(lblLineSize);
+		
+		JLabel lblNways = new JLabel("n-ways");
+		lblNways.setBounds(12, 71, 56, 16);
+		frame.getContentPane().add(lblNways);
+		
+		line_size_field = new JTextField();
+		line_size_field.setBounds(139, 39, 56, 22);
+		frame.getContentPane().add(line_size_field);
+		line_size_field.setColumns(10);
+		
+		n_ways_field = new JTextField();
+		n_ways_field.setBounds(139, 68, 56, 22);
+		frame.getContentPane().add(n_ways_field);
+		n_ways_field.setColumns(10);
+		
+		JLabel lblWritePolicy = new JLabel("Write policy");
+		lblWritePolicy.setBounds(12, 106, 79, 16);
+		frame.getContentPane().add(lblWritePolicy);
+		
+		write_policy_field = new JTextField();
+		write_policy_field.setBounds(139, 100, 56, 22);
+		frame.getContentPane().add(write_policy_field);
+		write_policy_field.setColumns(10);
+		
+		JLabel lblCycles = new JLabel("No. of cycles");
+		lblCycles.setBounds(12, 135, 79, 16);
+		frame.getContentPane().add(lblCycles);
+		
+		number_of_cycles_field = new JTextField();
+		number_of_cycles_field.setBounds(139, 132, 56, 22);
+		frame.getContentPane().add(number_of_cycles_field);
+		number_of_cycles_field.setColumns(10);
+		
+		JLabel lblMemAccessTime = new JLabel("Mem. access time");
+		lblMemAccessTime.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		lblMemAccessTime.setBounds(12, 164, 91, 22);
+		frame.getContentPane().add(lblMemAccessTime);
+		
+		memory_access_time_field = new JTextField();
+		memory_access_time_field.setBounds(139, 163, 56, 22);
+		frame.getContentPane().add(memory_access_time_field);
+		memory_access_time_field.setColumns(10);
+		
+		JLabel lblInstructionQueue = new JLabel("Instruction Queue");
+		lblInstructionQueue.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		lblInstructionQueue.setBounds(12, 199, 91, 16);
+		frame.getContentPane().add(lblInstructionQueue);
+		
+		instruction_queue_field = new JTextField();
+		instruction_queue_field.setBounds(139, 195, 56, 22);
+		frame.getContentPane().add(instruction_queue_field);
+		instruction_queue_field.setColumns(10);
+		
+		JLabel lblRobEntries = new JLabel("ROB entries");
+		lblRobEntries.setBounds(264, 198, 79, 16);
+		frame.getContentPane().add(lblRobEntries);
+		
+		rob_entries_field = new JTextField();
+		rob_entries_field.setBounds(347, 195, 56, 22);
+		frame.getContentPane().add(rob_entries_field);
+		rob_entries_field.setColumns(10);
+		
+		JLabel lblLoad = new JLabel("LOAD");
+		lblLoad.setBounds(264, 135, 56, 16);
+		frame.getContentPane().add(lblLoad);
+		
+		JLabel lblStore = new JLabel("STORE");
+		lblStore.setBounds(264, 166, 56, 16);
+		frame.getContentPane().add(lblStore);
+		
+		JLabel lblMultd = new JLabel("MULT.D");
+		lblMultd.setBounds(264, 106, 56, 16);
+		frame.getContentPane().add(lblMultd);
+		
+		multd_number = new JTextField();
+		multd_number.setBounds(347, 103, 56, 22);
+		frame.getContentPane().add(multd_number);
+		multd_number.setColumns(10);
+		
+		load_number = new JTextField();
+		load_number.setBounds(347, 132, 56, 22);
+		frame.getContentPane().add(load_number);
+		load_number.setColumns(10);
+		
+		store_number = new JTextField();
+		store_number.setBounds(347, 163, 56, 22);
+		frame.getContentPane().add(store_number);
+		store_number.setColumns(10);
+		
+		JLabel lblUnit = new JLabel("Unit");
+		lblUnit.setBounds(264, 13, 56, 16);
+		frame.getContentPane().add(lblUnit);
+		
+		JLabel lblNumber = new JLabel("Number");
+		lblNumber.setBounds(347, 13, 56, 16);
+		frame.getContentPane().add(lblNumber);
+		
+		JLabel lblCycles_1 = new JLabel("Cycles");
+		lblCycles_1.setBounds(438, 13, 56, 16);
+		frame.getContentPane().add(lblCycles_1);
+		
+		addi_cycles = new JTextField();
+		addi_cycles.setBounds(438, 39, 64, 22);
+		frame.getContentPane().add(addi_cycles);
+		addi_cycles.setColumns(10);
+		
+		addd_cycles = new JTextField();
+		addd_cycles.setBounds(438, 68, 64, 22);
+		frame.getContentPane().add(addd_cycles);
+		addd_cycles.setColumns(10);
+		
+		multd_cycles = new JTextField();
+		multd_cycles.setBounds(438, 103, 64, 22);
+		frame.getContentPane().add(multd_cycles);
+		multd_cycles.setColumns(10);
+		
+		load_cycles = new JTextField();
+		load_cycles.setBounds(438, 132, 64, 22);
+		frame.getContentPane().add(load_cycles);
+		load_cycles.setColumns(10);
+		
+		store_cycles = new JTextField();
+		store_cycles.setBounds(438, 163, 64, 22);
+		frame.getContentPane().add(store_cycles);
+		store_cycles.setColumns(10);
+		
+		JTextArea code_area = new JTextArea();
+		code_area.setBounds(22, 255, 280, 167);
+		frame.getContentPane().add(code_area);
+		
+		JTextArea output_area = new JTextArea();
+		output_area.setBounds(347, 255, 356, 167);
+		frame.getContentPane().add(output_area);
+		
+		JLabel lblYourCodeGoes = new JLabel("Your code goes here");
+		lblYourCodeGoes.setBounds(90, 228, 118, 16);
+		frame.getContentPane().add(lblYourCodeGoes);
+		
+		JLabel lblOutput = new JLabel("OUTPUT");
+		lblOutput.setBounds(499, 228, 56, 16);
+		frame.getContentPane().add(lblOutput);
+		
+		JButton btnRunCode = new JButton("Run Code");
+		btnRunCode.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO
+				// compile the code by taking all arguments from the fields
+			}
+		});
+		btnRunCode.setBounds(578, 162, 97, 25);
+		frame.getContentPane().add(btnRunCode);
+	}
 }
 
 //temporary instruction class... remove when the original is done
