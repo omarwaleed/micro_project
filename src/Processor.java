@@ -2,8 +2,14 @@
 
 import java.awt.EventQueue;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -864,6 +870,18 @@ public class Processor {
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO
 				// compile the code by taking all arguments from the fields
+				
+				// take the input and put it in a text file
+				//File input = new File("src/input.txt", code_area.getText());
+				try
+				{
+					Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("src/input.txt"), StandardCharsets.UTF_8));
+					writer.write(code_area.getText());
+					writer.flush();
+				}catch(Exception e)
+				{
+					e.printStackTrace();
+				}
 			}
 		});
 		btnRunCode.setBounds(578, 162, 97, 25);
