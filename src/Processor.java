@@ -691,7 +691,7 @@ public class Processor {
 	 */
 	private static void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 733, 482);
+		frame.setBounds(100, 100, 733, 603);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -894,6 +894,14 @@ public class Processor {
 		lblwriteThrough.setBounds(363, 242, 145, 22);
 		frame.getContentPane().add(lblwriteThrough);
 		
+		JLabel lblMemoryFiller = new JLabel("Memory Filler");
+		lblMemoryFiller.setBounds(306, 441, 97, 16);
+		frame.getContentPane().add(lblMemoryFiller);
+		
+		JTextArea memory_filler = new JTextArea();
+		memory_filler.setBounds(191, 470, 311, 73);
+		frame.getContentPane().add(memory_filler);
+		
 		JButton btnRunCode = new JButton("Run Code");
 		btnRunCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -932,6 +940,7 @@ public class Processor {
 		});
 		btnRunCode.setBounds(586, 162, 97, 25);
 		frame.getContentPane().add(btnRunCode);
+		
 	}
 }
 
