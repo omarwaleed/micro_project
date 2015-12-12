@@ -17,6 +17,7 @@ public class Cache
 	int NoOfBlocks;
 	int offsetBits;
 	int indexBits;
+	int missRate = 0;
 	 //valid bit is stored at index content[n][content[n].length-1]
 	//tag bit is stored at index content[n][content[n].length-2]
 	
@@ -193,7 +194,11 @@ public class Cache
            System.err.println(Arrays.toString(getContentOf(index)));
 		   return getContentOf(index);
 	   }
-	  return null;
+	   else {
+		  missRate++;
+		   return null;
+	   }
+
    }
    //method to write to the cache
    public void writeDM(int address,  String[] data) { // bug in the tag and index use the binary thing
@@ -237,6 +242,7 @@ public class Cache
 		   }
 	   }
 	   else { // miss
+		   missRate++;
 		   if (writePolicy == 1) { // write back
 			   // write back method here
 			   if (isDirty(index))
@@ -307,7 +313,7 @@ public class Cache
 		// assoc = 1 means that it is direct mapping
 
 		if(assoc==1){
-			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2))+1;
+			indexBits = (int)(Math.log((size/(getLineSize())))/Math.log(2));
 			offsetBits = (int)(Math.log(getLineSize())/Math.log(2));
 			int tagBits = 32-(indexBits+offsetBits);
 			//   System.out.println("Index bits: " + indexBits + " Offset bits: " + offsetBits + " Tag bits: " + tagBits);
@@ -357,12 +363,22 @@ public class Cache
 			System.out.println(Arrays.toString(getContentOf(hitindex)));
 			return getContentOf(hitindex);
 		}
-		return null;
+		else {
+			missRate++;
+			return null;
+		}
+
 	}
 
 	// to detect if hit or miss for both set and fully associative
 	public  int hitormiss(int address){
-		if(assoc>1 && assoc< NoOfBlocks){
+		if (assoc == 1) {
+            if(hitOrMissDM(address))
+				return divide(address)[1];
+			else
+				return -3;
+		}
+		else if(assoc>1 && assoc< NoOfBlocks){
 			int[]divide = divide(address);
 			int tag=divide(address)[0];
 			int index= divide(address)[1];  // which will determine the set number in this case
@@ -503,7 +519,7 @@ public class Cache
 				hitRate++;
 //if miss then we will check if there is an empty block then we will replace it in this block
 			}else{ // miss
-
+                   missRate++;
 				// added checks if the content is put in an empty block or we have to replace.
 
 				boolean added=false;
@@ -573,7 +589,7 @@ public class Cache
 			// if there is a hit
 			int tag = divide(address)[0];
 
-			if(hitormiss(address)!=-3){
+			if(hitormiss(address)!=-3){ // hit
 				int hitblock= hitormiss(address);
 				if(writePolicy==1){ // write back full
 					String[]newData = new String[data.length+3];
@@ -602,6 +618,7 @@ public class Cache
 				hitRate++;
 			}
 			else{  //miss
+				missRate++;
 				if(writePolicy==1){ //writeback
 					String[] newData = new String[data.length+3];
 					boolean added=false;

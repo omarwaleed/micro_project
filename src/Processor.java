@@ -16,13 +16,15 @@ public class Processor {
 //	Initialize the registers and the cache levels
 //	cache levels will end with the memory level but to be handled after user input
 	
-	private static int[] register = new int[32];
+	static int[] register = new int[32];
 	static ArrayList<String>lines = new ArrayList<String>();
-	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
-	private static ArrayList <Cache> iCache;
+	static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
+	static ArrayList <Cache> iCache = new ArrayList<Cache>();
 	static Hashtable<String, String> labels = new Hashtable<String,String>();
 	static int PC;
 	static int cycles = 0;
+	static int lineSize = 4;
+	static int ra = 0;
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -40,13 +42,20 @@ public class Processor {
 	}
 	
 //	get all registers
-	
+	                            /* Getters ans setters */
 	public int[] allRegisters()
 	{
 		return register;
 	}
+	public static ArrayList<Cache> getCacheLevel() {
+		return cacheLevel;
+	}
 
-	public void init() 
+	public static void setCacheLevel(ArrayList<Cache> cacheLevel) {
+		Processor.cacheLevel = cacheLevel;
+	}
+                                    /*  Assembler  */
+	public static void init()
 	{// method init takes input file from the user and
  	// compiles the file and handle pseudo
  	// instructions
@@ -56,7 +65,7 @@ public class Processor {
 	 Paths.get("src/input.txt"), StandardCharsets.UTF_8);
 	 getLabels(lines);
 	 if (validateLabels(lines) && compile(lines)) {
-	    this.lines = lines;
+	    Processor.lines = lines;
 	 } else {
 	 System.out.println("your code contains errors!");
 	 }
@@ -66,7 +75,7 @@ public class Processor {
 	 } 
 	 
 	}
-	public boolean isIFormat(String instruction) {
+	public static boolean isIFormat(String instruction) {
 		return (instruction
 				.matches("^\\w*\\s*\\:?\\s*(addi|lui)\\s*(\\$\\w\\d?\\,\\s*){2}\\s*\\d*$")
 				|| instruction
@@ -74,11 +83,11 @@ public class Processor {
 				.matches("^\\w*\\s*\\:?\\s*(bne|beq)\\s*(\\$\\w\\d?\\,\\s*){2}\\s*\\w*$"));
 	}
 
-	public boolean isJFormat(String instruction) {
+	public static boolean isJFormat(String instruction) {
 		return instruction.matches("^\\w+\\s*\\:?\\s*\\w*\\s+\\w*\\s*$");
 	}
 
-	public boolean isSupported(String instName) {
+	public static boolean isSupported(String instName) {
 		return (instName.equalsIgnoreCase("add")
 				|| instName.equalsIgnoreCase("sub")
 				|| instName.equalsIgnoreCase("lw")
@@ -104,19 +113,19 @@ public class Processor {
 				.equalsIgnoreCase("la"));
 	}
 
-	public boolean isJump(String instName) {
+	public static boolean isJump(String instName) {
 		return (instName.equalsIgnoreCase("j")
 				|| instName.equalsIgnoreCase("jal") || instName
 				.equalsIgnoreCase("jr"));
 	}
-	public boolean isRFormat(String instruction) {
+	public static boolean isRFormat(String instruction) {
 		return (instruction
-				.matches("^(\\w*\\s*\\:?)\\s*(add|sub|slt|sltu|and|nor)\\s+\\$\\w\\d,\\s*\\$\\w\\d,\\s*\\$\\w\\d\\s*$")
+				.matches("^(\\w*\\s*\\:?)\\s*(add|sub|slt|sltu|nand|nor)\\s+\\$\\w\\d,\\s*\\$\\w\\d,\\s*\\$\\w\\d\\s*$")
 				|| instruction
 				.matches("^(\\w*\\s*\\:?)\\s*(sll|srl)\\s+\\$\\w*\\d?,\\s*\\$\\w*\\d?,\\s*\\d*$") || instruction
 				.matches("^(\\w*\\s*\\:?)\\s*(jr)\\s+\\$\\w{2}$"));
 	}
-	public void getLabels(ArrayList<String> lines) {
+	public static void getLabels(ArrayList<String> lines) {
 		for (int i = 0; i < lines.size(); i++) {
 			if (lines.get(i).contains(":")
 					&& (isRFormat(lines.get(i)) || isJFormat(lines.get(i))
@@ -127,7 +136,7 @@ public class Processor {
 		}
 	}
 
-	public boolean validateLabels(ArrayList<String> lines) {
+	public static boolean validateLabels(ArrayList<String> lines) {
 		boolean labelEB = true;
 		boolean labelEJ = true;
 		boolean labelJR = true;
@@ -185,7 +194,7 @@ public class Processor {
 		return labelEB && labelEJ && labelJR;
 	}
 
-	public boolean compile(ArrayList<String> lines) {
+	public static boolean compile(ArrayList<String> lines) {
 		boolean compiled = true;
 		for (int i = 0; i < lines.size(); i++) {
 			if ((!isRFormat(lines.get(i)) && !isIFormat(lines.get(i))
@@ -205,9 +214,40 @@ public class Processor {
 		}
 		return compiled;
 	}
-	
+	                                  /*Fetch helpers */
+	public static int countBranch(ArrayList<String> lines) {
+		int count = 0;
+		for (int i = 0; i < lines.size();i++) {
+			if(lines.get(i).contains(":")) {
+				String instName = lines.get(i).split(":")[1].split(" ")[0];
+				if (instName.equals("beq") || instName.equals("bne"))
+					count++;
+
+			}
+			else {
+				String instName = lines.get(i).split(" ")[0];
+				if (instName.equals("beq") || instName.equals("bne"))
+					count++;
+			}
+		}
+		return count;
+	}
+	public static void LoadProgram(ArrayList<String> lines) { // loads the program to the main memory
+		int address = 0;
+		int jump = 1;
+		for(int i = 0; i < lines.size(); i=lineSize*jump) {
+			String[] chunck = new String[lineSize];
+			for(int j = 0; j < lineSize; j++) { // divide instructions to blocks
+				chunck[j] = lines.get(i+j);
+			}
+			   if (iCache.get(iCache.size()-1).isMainMemory())
+			iCache.get(iCache.size()-1).write(address,chunck);
+			address++;
+			jump++;
+		}
+	}
 	///// omar's work starts here
-	
+	                                  /* Fetch*/
 	public static Instruction[] fetch()
 	{
 		// WARNING
@@ -217,13 +257,19 @@ public class Processor {
 		
 		// instruction(name, type, rd, rs, rt)
 		Instruction[] fetched = new Instruction[4];
-		
 		for (int i = 0; i < fetched.length; i++) 
 		{
 			//	fetch every instruction from lines from pc to pc + 3
 			// create an object of that instruction
 			// add it to the array
-			String tempLine = lines.get(PC+ i);
+            boolean taken = false;
+			boolean jump  = false;
+			int physicalAddress = 0;
+			String tmp = cacheAccesRead(PC,false);
+            String overHead = tmp.split(":")[1];
+			String tempLine = tmp.split(":")[0];
+			String label = "";
+			String[] regs = new String[4];
 			if (tempLine == null) 
 			{
 				System.out.println("Reached end of input");
@@ -239,80 +285,108 @@ public class Processor {
 			{
 				sLine = tempLine.split(" ");
 			}
-			String [] regs = sLine[1].split(",");
-			
+			if (!isJump(sLine[0])) {
+				 regs = sLine[1].split(",");
+			}
+			else {
+				 label = sLine[1];
+			}
+
+			//public Instruction(String n, String source1, String source2, String dest,String t)
 //			not really sure of how correct is my call to the hitOrMiss method
-			for (int j = 0; j < iCache.size(); j++) 
-			{
-				if (iCache.get(j).hitOrMissDM(PC+1)) 
-				{
+			//for (int j = 0; j < iCache.size(); j++)
+			//{
+				//if (iCache.get(j).hitOrMissDM(PC+1))
+				//{
 					// this should add to fetched[i] the content of the iCache at j which is supposed to be an instruction but its not
 					// the cache is read and parsed into a new instruction which is put in the fetched array
-					String [] read = iCache.get(j).readDM(PC);
-					fetched[i] = new Instruction(read[0], read[1], read[2], read[3], read[4]);
-					cycles += 1;
-				}
-				else
-				{
-					
-					cycles += iCache.get(j).getCycles();
+					//String [] read = iCache.get(j).readDM(PC);
+					//fetched[i] = new Instruction(read[0], read[1], read[2], read[3], read[4]);
+					//cycles += 1;
+				//}
+				//else
+				//{
+
+					//cycles += iCache.get(j).getCycles();
 					switch (sLine[0].toLowerCase()) 
 					{
-					case "add": fetched[i] = new Instruction("Add", "Add", regs[0], regs[1], regs[2]); break;
-					case "sub": fetched[i] = new Instruction("Sub", "Add", regs[0], regs[1], regs[2]); break;
+					case "add": fetched[i] = new Instruction("Add", "arithmetic", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
+					case "sub": fetched[i] = new Instruction("Sub", "arithmetic", regs[0], regs[1], regs[2]);fetched[i].lastCycle = overHead; break;
 					case "beq":
 						// if the content of regs[2] is present in the labels get its PC value from the hashtable
 						// else put the number directly
 						
 						// NOTE THAT
 						// the "beq" instruction should depend on the offset and it is not handled...yet
-						if (labels.containsKey(regs[2])) 
+						if (Integer.parseInt(labels.get(regs[2])) % lineSize < PC)
 						{
-							fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], labels.get(regs[2]));
+							taken = true;
+							physicalAddress = Integer.parseInt(labels.get(regs[2])) % lineSize;
+							//fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], labels.get(regs[2]));
 						}
 						else
 						{
-							fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
-						} 
+							physicalAddress = PC++;
+							//fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
+						}
+						fetched[i] = new Instruction("beq", "conditional branch", regs[0], regs[1], physicalAddress+"");
+						fetched[i].lastCycle = overHead;
 						break;
-					case "load": fetched[i] = new Instruction("load", "load", regs[0], regs[1], regs[2]); break;
-					case "store": fetched[i] = new Instruction("store", "load", regs[0], regs[1], regs[2]); break;
-					case "mult": fetched[i] = new Instruction("mult", "mult", regs[0], regs[1], regs[2]); break;
-					case "div": fetched[i] = new Instruction("div", "mult", regs[0], regs[1], regs[2]); break;
+					case "load": fetched[i] = new Instruction("load", "load/store", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
+					case "store": fetched[i] = new Instruction("store", "load/store", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
+					case "mult": fetched[i] = new Instruction("mult", "arithmetic", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
+					case "div": fetched[i] = new Instruction("div", "arithmetic", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
 					case "jalr":
-						int saveTo = Integer.parseInt(regs[0].toLowerCase().split("r")[1]);
-						if (saveTo > 31 || saveTo < 1) 
-						{
-							System.out.println("Sth is wrong with the register to save to in jalr in fetch method");
-						}
-						else
-						{
-							register[saveTo] = PC+1;
-							PC = Integer.parseInt(regs[1]);
-						}
-						fetched[i] = new Instruction("jarl", "add", regs[0], regs[1], regs[2]);
+						ra = PC+1;
+						physicalAddress = Integer.parseInt(labels.get(label)) % lineSize;
+						jump = true;
+//						int saveTo = Integer.parseInt(regs[0].toLowerCase().split("r")[1]);
+//						if (saveTo > 31 || saveTo < 1)
+//						{
+//							System.out.println("Sth is wrong with the register to save to in jalr in fetch method");
+//						}
+//						else
+//						{
+//							register[saveTo] = PC+1;
+//							PC = Integer.parseInt(regs[1]);
+//						}
+						fetched[i] = new Instruction("jarl", "call/return", "", "", physicalAddress+"");
+						fetched[i].lastCycle = overHead;
 						break;
 						// keep in mind here it assumes that the registers will be from 0 to 31
 						// if out of bounds it will give a null pointer exception which indicates compiling error for user
 					case "ret":
-						PC = register[Integer.parseInt(regs[0])];
-						fetched[i] = new Instruction("jarl", "add", regs[0], null, null);
+						PC = ra;
+						fetched[i] = new Instruction("jarl", "call/return", null, null, null);
+						fetched[i].lastCycle = overHead;
 						break;
 					case "jmp":
-						PC = register[Integer.parseInt(regs[0])];
-						fetched[i] = new Instruction("jarl", "add", regs[0], regs[1], null);
+						physicalAddress = Integer.parseInt(labels.get(label)) % lineSize;
+						jump = true;
+						fetched[i] = new Instruction("jmp", "unconditional branch", "", "", physicalAddress+"");
+						fetched[i].lastCycle = overHead;
 						break;
-					case "nand": fetched[i] = new Instruction("nand", "add", regs[0], regs[1], regs[2]); break;
-					case "addi": fetched[i] = new Instruction("addi", "add", regs[0], regs[1], regs[2]); break;
+					case "nand": fetched[i] = new Instruction("nand", "arithmetic", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
+					case "addi": fetched[i] = new Instruction("addi", "arithmetic", regs[0], regs[1], regs[2]);
+						fetched[i].lastCycle = overHead;break;
 
 					default: System.out.println("Something is wrong in fetch() switch statement");break;
 					}
 					// writes the fetched instruction to the iCache					
-					iCache.get(j).writeDM(PC, fetched[i].toString().substring(1, fetched[i].toString().length()-1).split(","));
+					//iCache.get(j).writeDM(PC, fetched[i].toString().substring(1, fetched[i].toString().length()-1.split(","));
 					// always increment the PC after each fetch
-					PC++;
-				}
-			}
+				if (!taken && !jump)
+				PC++;
+				else
+					PC = physicalAddress;
+				//}
+			//}
 		}
 		
 		return fetched;
@@ -321,6 +395,10 @@ public class Processor {
 
 	/////soha#write through
 	////method that take block no in a cache and return block No in MM
+
+
+
+	                                           /* Write Policy */
 	public static int getPhysicalAddressi(int BlockNo,Cache c){
 		String tmp;
 		if(c.getAssoc()==c.getNoOFBlocks()){//full associative
@@ -529,21 +607,105 @@ public class Processor {
 		
 	}
 
-	public static ArrayList<Cache> getCacheLevel() {
-		return cacheLevel;
-	}
+	                                  /* Memory Hierarchy   */
+	public static String cacheAccesRead(int address,boolean D) {
+		if (D) { // read from D-cache
+			int overHead = 0;
+			for (int i = 0; i < cacheLevel.size(); i++) {
+				overHead += cacheLevel.get(i).getCycles();
+				if (cacheLevel.get(i).hitormiss(address) == cacheLevel.get(i).divide(address)[1]) {
+					// hit
+					if (i > 0) {
+						for(int j = i-1; j > -1; j--) {
 
-	public static void setCacheLevel(ArrayList<Cache> cacheLevel) {
-		Processor.cacheLevel = cacheLevel;
-	}
+						    cacheLevel.get(j).write(address,cacheLevel.get(i).getContentOf(cacheLevel.get(i).divide(address)[1]));
+						}
+					}
+					return cacheLevel.get(i).read(address)[cacheLevel.get(i).divide(address)[2]] + ":" + overHead;
+				}
 
-	public static String[] cacheAccesRead(int address) {
-         return null;
-		// TO-DO implement read method for memory hierarchy
+			}
+			return ":" + overHead;
+		} else { // read from I-cache
+			int overHead = 0;
+			for (int i = 0; i < iCache.size(); i++) {
+				overHead += iCache.get(i).getCycles();
+				if (iCache.get(i).hitormiss(address) == iCache.get(i).divide(address)[1]) {// hit
+					if (i > 0) {
+						for(int j = i-1; j > -1; j--) {
+							System.out.println("In the update cache loop");
+							iCache.get(j).write(address,iCache.get(i).getContentOf(iCache.get(i).divide(address)
+									[1]));
+						}
+					}
+					return iCache.get(i).read(address)[iCache.get(i).divide(address)[2]] + ":" + overHead;
+				}
+
+			}
+			return ":" + overHead;
+		}
 	}
-	public static void cacheAccessWrite(int address, String[] data) {
+	public static int cacheAccessWrite(int address, String[] data,boolean D) {
 		//implement write to memory level
+		int overHead = 0;
+		if (D) { //write in D-cache
+			for (int i = 0; i < cacheLevel.size(); i++) {
+				overHead += cacheLevel.get(i).getCycles();
+				if (cacheLevel.get(i).hitormiss(address) == cacheLevel.get(i).divide(address)[1]) { // hit
+					cacheLevel.get(i).write(address,data);
+					if (i > 0) {
+						for (int j = i - 1; j > -1; j--) {
+                          cacheLevel.get(j).write(address,data);
+						}
+					}
+					break;
+				}
+			}
+		}
+		else { // write in I-cache
+			for (int i = 0; i < iCache.size(); i++) {
+				overHead += iCache.get(i).getCycles();
+				if (iCache.get(i).hitormiss(address) == iCache.get(i).divide(address)[1]) { // hit
+					iCache.get(i).write(address,data);
+					if (i > 0) {
+						for (int j = i - 1; j > -1; j--) {
+							System.out.println("In the update cache loop");
+							iCache.get(j).write(address,data);
+						}
+					}
+					break;
+				}
+			}
+		}
+		return overHead;
 	}
+   public static int globalAMAT(boolean D) {
+	   if (D) { // AMAT for D-Cache
+		   int missPenalty = cacheLevel.get(cacheLevel.size()-1).getCycles();
+		   ArrayList<Integer> AMAT = new ArrayList<Integer>();
+		   for(int i = cacheLevel.size()-2; i > -1;i--) {
+			   Integer AMAT1 = cacheLevel.get(i).getHitRate() + missPenalty*cacheLevel.get(i).missRate;
+              AMAT.add(i,AMAT1);
+			   missPenalty = AMAT1;
+		   }
+		   //global AMAT
+		   return AMAT.get(0);
+	   }
+	   else { // AMAT for I-cache
+		   int missPenalty = iCache.get(iCache.size()-1).getCycles();
+		   ArrayList<Integer> AMAT = new ArrayList<Integer>();
+		   for(int i = iCache.size()-2; i > -1;i--) {
+			   Integer AMAT1 = iCache.get(i).getHitRate() + missPenalty*iCache.get(i).missRate;
+			   AMAT.add(i,AMAT1);
+			   missPenalty = AMAT1;
+		   }
+		   //global AMAT
+		   return AMAT.get(0);
+
+	   }
+   }
+
+
 
 	/////////////////////////
 	public static void main(String[] args) 
