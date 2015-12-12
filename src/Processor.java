@@ -885,7 +885,7 @@ public class Processor {
 		lblMemoryHeirarchy.setBounds(318, 226, 126, 16);
 		frame.getContentPane().add(lblMemoryHeirarchy);
 		
-		JLabel lblSmwritepolicy = new JLabel("S,M:write_policy");
+		JLabel lblSmwritepolicy = new JLabel("S,M,T:write_policy");
 		lblSmwritepolicy.setBounds(246, 244, 126, 16);
 		frame.getContentPane().add(lblSmwritepolicy);
 		
@@ -930,7 +930,9 @@ public class Processor {
 					String[] s_m = sub_line[0].split(","); 
 					cacheLevel.add(new Cache(Integer.parseInt(s_m[0]), line_size, Integer.parseInt(s_m[1])));
 					cacheLevel.get(cacheLevel.size()-1).setWritePolicy(Integer.parseInt(sub_line[1]));
+					cacheLevel.get(cacheLevel.size()-1).setCycles(Integer.parseInt(s_m[2]));
 					iCache.add(new Cache(Integer.parseInt(s_m[0]), line_size, Integer.parseInt(s_m[1])));
+					iCache.get(iCache.size()-1).setCycles(Integer.parseInt(s_m[2]));
 				}
 				cacheLevel.add(new Cache(Integer.parseInt(memory_size_field.getText()),line_size, 1));
 				
