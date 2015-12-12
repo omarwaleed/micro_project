@@ -39,7 +39,7 @@ public class Processor {
 	private static int[] register = new int[32];
 	static ArrayList<String>lines = new ArrayList<String>();
 	private static ArrayList <Cache> cacheLevel = new ArrayList<Cache>();
-	private static ArrayList <Cache> iCache;
+	private static ArrayList <Cache> iCache = new ArrayList<Cache>();
 	static Hashtable<String, String> labels = new Hashtable<String,String>();
 	static int PC;
 	static int cycles = 0;
@@ -61,6 +61,7 @@ public class Processor {
 	private static JTextField multd_cycles;
 	private static JTextField load_cycles;
 	private static JTextField store_cycles;
+	private static JTextField memory_size_field;
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -659,7 +660,8 @@ public class Processor {
 		}
 
 		cacheLevel.add(new Cache(64*1024, 16, 1, 0, memoryTime));
-		iCache = new ArrayList<Cache>(cacheLevel);		
+		// TODO check if needed the commented line below
+		// iCache = new ArrayList<Cache>(cacheLevel);		
 		Processor p = new Processor();
 		ArrayList<String> lines = new ArrayList<String>();
 		lines.add("add $t0,$t1,$t4");
@@ -850,20 +852,47 @@ public class Processor {
 		store_cycles.setColumns(10);
 		
 		JTextArea code_area = new JTextArea();
-		code_area.setBounds(22, 255, 280, 167);
+		code_area.setBounds(12, 255, 222, 167);
 		frame.getContentPane().add(code_area);
 		
 		JTextArea output_area = new JTextArea();
-		output_area.setBounds(347, 255, 356, 167);
+		output_area.setBounds(520, 255, 183, 167);
 		frame.getContentPane().add(output_area);
 		
 		JLabel lblYourCodeGoes = new JLabel("Your code goes here");
-		lblYourCodeGoes.setBounds(90, 228, 118, 16);
+		lblYourCodeGoes.setBounds(50, 226, 118, 16);
 		frame.getContentPane().add(lblYourCodeGoes);
 		
 		JLabel lblOutput = new JLabel("OUTPUT");
-		lblOutput.setBounds(499, 228, 56, 16);
+		lblOutput.setBounds(599, 226, 56, 16);
 		frame.getContentPane().add(lblOutput);
+		
+		JTextArea memory_input = new JTextArea();
+		memory_input.setBounds(255, 273, 239, 149);
+		frame.getContentPane().add(memory_input);
+		
+		JLabel lblMemorySize = new JLabel("Memory Size");
+		lblMemorySize.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		lblMemorySize.setBounds(536, 43, 64, 16);
+		frame.getContentPane().add(lblMemorySize);
+		
+		memory_size_field = new JTextField();
+		memory_size_field.setBounds(619, 39, 84, 22);
+		frame.getContentPane().add(memory_size_field);
+		memory_size_field.setColumns(10);
+		
+		JLabel lblMemoryHeirarchy = new JLabel("Memory Heirarchy");
+		lblMemoryHeirarchy.setBounds(318, 226, 126, 16);
+		frame.getContentPane().add(lblMemoryHeirarchy);
+		
+		JLabel lblSmwritepolicy = new JLabel("S,M:write_policy");
+		lblSmwritepolicy.setBounds(246, 244, 126, 16);
+		frame.getContentPane().add(lblSmwritepolicy);
+		
+		JLabel lblwriteThrough = new JLabel("0:write through 1: write back");
+		lblwriteThrough.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		lblwriteThrough.setBounds(363, 242, 145, 22);
+		frame.getContentPane().add(lblwriteThrough);
 		
 		JButton btnRunCode = new JButton("Run Code");
 		btnRunCode.addActionListener(new ActionListener() {
@@ -882,9 +911,26 @@ public class Processor {
 				{
 					e.printStackTrace();
 				}
+				
+				String [] mem_in = memory_input.getText().split("\\n");
+//				System.out.println(Arrays.toString(mem_in));
+				int number_of_caches = Integer.parseInt(mem_in[0]);
+				int line_size = Integer.parseInt(line_size_field.getText());
+				for (int i = 1; i <= number_of_caches; i++) 
+				{
+					String[] sub_line = mem_in[i].split(":");
+					String[] s_m = sub_line[0].split(","); 
+					cacheLevel.add(new Cache(Integer.parseInt(s_m[0]), line_size, Integer.parseInt(s_m[1])));
+					cacheLevel.get(cacheLevel.size()-1).setWritePolicy(Integer.parseInt(sub_line[1]));
+					iCache.add(new Cache(Integer.parseInt(s_m[0]), line_size, Integer.parseInt(s_m[1])));
+				}
+				cacheLevel.add(new Cache(Integer.parseInt(memory_size_field.getText()),line_size, 1));
+				
+//				System.out.println(Arrays.toString(cacheLevel.toArray()));
+				
 			}
 		});
-		btnRunCode.setBounds(578, 162, 97, 25);
+		btnRunCode.setBounds(586, 162, 97, 25);
 		frame.getContentPane().add(btnRunCode);
 	}
 }
