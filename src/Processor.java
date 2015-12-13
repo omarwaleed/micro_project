@@ -105,25 +105,25 @@ public class Processor {
 				|| instName.equalsIgnoreCase("srl")
 				|| instName.equalsIgnoreCase("beq")
 				|| instName.equalsIgnoreCase("bne")
-				|| instName.equalsIgnoreCase("j")
+				|| instName.equalsIgnoreCase("jmp")
 				|| instName.equalsIgnoreCase("jal")
-				|| instName.equalsIgnoreCase("jr")
-				|| instName.equalsIgnoreCase("move")
+				|| instName.equalsIgnoreCase("ret")
+				|| instName.equalsIgnoreCase("div")
 				|| instName.equalsIgnoreCase("blt") || instName
 				.equalsIgnoreCase("la"));
 	}
 
 	public static boolean isJump(String instName) {
-		return (instName.equalsIgnoreCase("j")
+		return (instName.equalsIgnoreCase("jmp")
 				|| instName.equalsIgnoreCase("jal") || instName
-				.equalsIgnoreCase("jr"));
+				.equalsIgnoreCase("ret"));
 	}
 	public static boolean isRFormat(String instruction) {
 		return (instruction
-				.matches("^(\\w*\\s*\\:?)\\s*(add|sub|slt|sltu|nand|nor)\\s+\\$\\w\\d,\\s*\\$\\w\\d,\\s*\\$\\w\\d\\s*$")
+				.matches("^(\\w*\\s*\\:?)\\s*(add|sub|mul|div|nand)\\s+\\$\\w\\d,\\s*\\$\\w\\d,\\s*\\$\\w\\d\\s*$")
 				|| instruction
 				.matches("^(\\w*\\s*\\:?)\\s*(sll|srl)\\s+\\$\\w*\\d?,\\s*\\$\\w*\\d?,\\s*\\d*$") || instruction
-				.matches("^(\\w*\\s*\\:?)\\s*(jr)\\s+\\$\\w{2}$"));
+				.matches("^(\\w*\\s*\\:?)\\s*(ret)\\s+\\$\\w*$"));
 	}
 	public static void getLabels(ArrayList<String> lines) {
 		for (int i = 0; i < lines.size(); i++) {
@@ -266,11 +266,11 @@ public class Processor {
 			boolean jump  = false;
 			int physicalAddress = 0;
 			String tmp = cacheAccesRead(PC,false);
-            String overHead = tmp.split(":")[1];
-			String tempLine = tmp.split(":")[0];
+            String overHead = tmp.split("-")[1];
+			String tempLine = tmp.split("-")[0];
 			String label = "";
 			String[] regs = new String[4];
-			if (tempLine == null) 
+			if (tempLine.split(" ")[0].equals("halt"))
 			{
 				System.out.println("Reached end of input");
 				return fetched;
@@ -353,11 +353,11 @@ public class Processor {
 							fetched[i] = new Instruction("beq", "conditional branch", regs[0], regs[1], physicalAddress+"");
 							fetched[i].lastCycle = overHead;
 							break;
-					case "load": fetched[i] = new Instruction("load", "load/store", regs[0], regs[1], regs[2]);
+					case "lw": fetched[i] = new Instruction("load", "load/store", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
-					case "store": fetched[i] = new Instruction("store", "load/store", regs[0], regs[1], regs[2]);
+					case "sw": fetched[i] = new Instruction("store", "load/store", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
-					case "mult": fetched[i] = new Instruction("mult", "arithmetic", regs[0], regs[1], regs[2]);
+					case "mul": fetched[i] = new Instruction("mult", "arithmetic", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
 					case "div": fetched[i] = new Instruction("div", "arithmetic", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
@@ -641,11 +641,11 @@ public class Processor {
 						    cacheLevel.get(j).write(address,cacheLevel.get(i).getContentOf(cacheLevel.get(i).divide(address)[1]));
 						}
 					}
-					return cacheLevel.get(i).read(address)[cacheLevel.get(i).divide(address)[2]] + ":" + overHead;
+					return cacheLevel.get(i).read(address)[cacheLevel.get(i).divide(address)[2]] + "-" + overHead;
 				}
 
 			}
-			return ":" + overHead;
+			return "-" + overHead;
 		} else { // read from I-cache
 			int overHead = 0;
 			for (int i = 0; i < iCache.size(); i++) {
@@ -658,11 +658,11 @@ public class Processor {
 									[1]));
 						}
 					}
-					return iCache.get(i).read(address)[iCache.get(i).divide(address)[2]] + ":" + overHead;
+					return iCache.get(i).read(address)[iCache.get(i).divide(address)[2]] + "-" + overHead;
 				}
 
 			}
-			return ":" + overHead;
+			return "-" + overHead;
 		}
 	}
 	public static int cacheAccessWrite(int address, String[] data,boolean D) {
