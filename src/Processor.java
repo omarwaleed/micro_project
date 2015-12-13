@@ -933,10 +933,11 @@ public class Processor {
 					cacheLevel.get(cacheLevel.size()-1).setCycles(Integer.parseInt(s_m[2]));
 					iCache.add(new Cache(Integer.parseInt(s_m[0]), line_size, Integer.parseInt(s_m[1])));
 					iCache.get(iCache.size()-1).setCycles(Integer.parseInt(s_m[2]));
+					iCache.get(iCache.size()-1).setWritePolicy(Integer.parseInt(sub_line[1]));
+
 				}
 				cacheLevel.add(new Cache(Integer.parseInt(memory_size_field.getText()),line_size, 1));
-				
-//				System.out.println(Arrays.toString(cacheLevel.toArray()));
+				System.out.println(Arrays.toString(cacheLevel.toArray()));
 				
 			}
 		});
