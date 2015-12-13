@@ -403,9 +403,9 @@ public class Processor {
 					switch (sLine[0].toLowerCase()) 
 					{
 					case "add": fetched[i] = new Instruction("add", regs[0], regs[1], regs[2], "arithmetic");
-					fetched[i].lastCycle = Integer.parseInt(overHead);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);break;
 					case "sub": fetched[i] = new Instruction("sub", regs[0], regs[1], regs[2], "arithmetic");
-					fetched[i].lastCycle = Integer.parseInt(overHead); break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1); break;
 					case "beq":
 						// if the content of regs[2] is present in the labels get its PC value from the hashtable
 						// else put the number directly
@@ -424,7 +424,7 @@ public class Processor {
 							//fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
 						}
 						fetched[i] = new Instruction("beq", regs[0], regs[1], physicalAddress+"", "conditional branch");
-						fetched[i].lastCycle = Integer.parseInt(overHead);
+						fetched[i].lastCycle = Integer.parseInt(overHead+1);
 						break;
 						case "bne":
 							// if the content of regs[2] is present in the labels get its PC value from the hashtable
@@ -444,16 +444,16 @@ public class Processor {
 								//fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
 							}
 							fetched[i] = new Instruction("beq", regs[0], regs[1], physicalAddress+"", "conditional branch");
-							fetched[i].lastCycle = Integer.parseInt(overHead);
+							fetched[i].lastCycle = Integer.parseInt(overHead+1);
 							break;
 					case "lw": fetched[i] = new Instruction("load", regs[0], regs[1], regs[2], "load/store");
-					fetched[i].lastCycle = Integer.parseInt(overHead);fetched[i].offset = handleLoadStore(tempLine);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);fetched[i].offset = handleLoadStore(tempLine);break;
 					case "sw": fetched[i] = new Instruction("store", regs[0], regs[1], regs[2], "load/store");
-					fetched[i].lastCycle = Integer.parseInt(overHead);fetched[i].offset = handleLoadStore(tempLine);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);fetched[i].offset = handleLoadStore(tempLine);break;
 					case "mul": fetched[i] = new Instruction("mult", regs[0], regs[1], regs[2], "arithmetic");
-					fetched[i].lastCycle = Integer.parseInt(overHead);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);break;
 					case "div": fetched[i] = new Instruction("div", regs[0], regs[1], regs[2], "arithmetic");
-					fetched[i].lastCycle = Integer.parseInt(overHead);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);break;
 					case "jal":
 						ra = PC+1;
 						physicalAddress = Integer.parseInt(labels.get(label)) % lineSize;
@@ -469,25 +469,25 @@ public class Processor {
 //							PC = Integer.parseInt(regs[1]);
 //						}
 						fetched[i] = new Instruction("jal", "", "", physicalAddress+"", "call/return");
-						fetched[i].lastCycle = Integer.parseInt(overHead);
+						fetched[i].lastCycle = Integer.parseInt(overHead+1);
 						break;
 						// keep in mind here it assumes that the registers will be from 0 to 31
 						// if out of bounds it will give a null pointer exception which indicates compiling error for user
 					case "ret":
 						PC = ra;
 						fetched[i] = new Instruction("ret", null, null, null, "call/return");
-						fetched[i].lastCycle = Integer.parseInt(overHead);
+						fetched[i].lastCycle = Integer.parseInt(overHead+1);
 						break;
 					case "jmp":
 						physicalAddress = Integer.parseInt(labels.get(label)) % lineSize;
 						jump = true;
 						fetched[i] = new Instruction("jmp", "", "", physicalAddress+"", "unconditional branch");
-						fetched[i].lastCycle = Integer.parseInt(overHead);
+						fetched[i].lastCycle = Integer.parseInt(overHead+1);
 						break;
 					case "nand": fetched[i] = new Instruction("nand", regs[0], regs[1], regs[2], "arithmetic");
-					fetched[i].lastCycle = Integer.parseInt(overHead);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);break;
 					case "addi": fetched[i] = new Instruction("addi", regs[0], regs[1], regs[2], "arithmetic");
-					fetched[i].lastCycle = Integer.parseInt(overHead);break;
+					fetched[i].lastCycle = Integer.parseInt(overHead+1);break;
 
 					default: System.out.println("Something is wrong in fetch() switch statement");break;
 					}
@@ -986,8 +986,8 @@ public static ArrayList<Double> hitRatio(boolean D) {
 					FU y = scoreBoard.getFU(x.type);
 					y.busy = true;
 					y.op = x.name;
-					y.vj = x.rs;// has only one resource
-					Entry entry = new Entry(x.type, x.rd);// to insert it n the
+					y.vj = x.rt;// has only one resource //changed it it was rs
+					Entry entry = new Entry(x.type, x.rs);// to insert it n the //was rd but now it is rs
 															// ROB
 					entry.occupied = true;
 					scoreBoard.insertROB(entry);
@@ -1270,10 +1270,11 @@ public static ArrayList<Double> hitRatio(boolean D) {
 						y.execute();
 
 						if (y.i.lastCycle > cycle)
-							y.i.lastCycle += y.latency - 1;// should be modified
-															// and el cache
+							//y.i.lastCycle += y.latency - 1;// should be modified
+							y.i.lastCycle++;								// and el cache
 						else
-							y.i.lastCycle = cycle + y.latency - 1;
+							//y.i.lastCycle = cycle + y.latency - 1;
+							y.i.lastCycle=cycle+1;
 
 						scoreBoard.instructions.put(y.i,
 								scoreBoard.instructions.get(y.i) + ",Excuted :"
@@ -1420,6 +1421,9 @@ public static ArrayList<Double> hitRatio(boolean D) {
 		if(Writebs.size()>0)
 		writeBack(0);
 	}
+	public static int getMissPredictionPercantage(){
+		return misspredicted/countBranch(lines);
+	}
 
 	// //end of excute
 	// //////////////////////////////////////////////////weam
@@ -1565,6 +1569,23 @@ public static ArrayList<Double> hitRatio(boolean D) {
 																// number from
 																// register status
 					ent.clear(); // clear entry from ROB
+					if(ins.name.equals("store")){
+						if(cycle>temp.i.lastCycle+1){
+							
+							int total = cycle+temp.latency+1;
+							temp.i.lastCycle=total;
+							status =status+" , "+" Committed "+ total; // change the status
+							ins.setEnd(total);
+						}
+						else {
+							temp.i.lastCycle=temp.i.lastCycle+temp.latency+1;
+							status =status+" , "+" Committed "+temp.i.lastCycle;
+							ins.setEnd(temp.i.lastCycle);
+						}
+						
+						
+					}
+					else{
 					if(cycle>temp.i.lastCycle+1){
 						status =status+" , "+" Committed "+cycle; // change the status
 					ins.setEnd(cycle);
@@ -1573,6 +1594,7 @@ public static ArrayList<Double> hitRatio(boolean D) {
 						temp.i.lastCycle=temp.i.lastCycle+1;
 						status =status+" , "+" Committed "+temp.i.lastCycle;
 						ins.setEnd(temp.i.lastCycle);
+					}
 					}
 						
 					scoreBoard.instructions.put(ins, status);

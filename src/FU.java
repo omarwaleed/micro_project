@@ -34,9 +34,18 @@ public class FU {
 		val = null;
 		if (op.equalsIgnoreCase("load")) {
 			// call load method
+			String ana =Processor.cacheAccesRead(Integer.parseInt(a), true);
+			String [] ana1=ana.split("-");
+			val=ana1[0];
+			String overhead=ana1[1];
+			i.lastCycle=i.lastCycle+Integer.parseInt(overhead);
 
 		} else if (op.equalsIgnoreCase("store")) {
 			// call store method
+			String[]x={String.valueOf(Processor.registers.get(vj))};
+			int xx=Processor.cacheAccessWrite(Integer.parseInt(a),x , true);
+			i.lastCycle=i.lastCycle+xx;
+			
 		} else if (op.equalsIgnoreCase("add")) {
 			// add method
 			if (qj == null && qk == null) {// they are in the registers
