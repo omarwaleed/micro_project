@@ -8,6 +8,7 @@ public class Instruction {
     String rd;
     String type;
     String lastCycle;
+    String offset;
     public Instruction(String n, String source1, String source2, String dest,String t) {
     	
     	// checks if source1 contsins a number then use amal's default else use omar's instruction call

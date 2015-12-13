@@ -301,6 +301,46 @@ public class Processor {
 			}
 		}
 	}
+	public static String handleLoadStore(String instruction) {
+		//String rs = instruction.split(" ")[1].split(",")[0].trim();
+		//String rest = "";
+		//String rt = "";
+		//String offset = "";
+		String extract = instruction.split(" ")[1].split(",")[1].trim();
+		String number = "";
+		String reg = "";
+		boolean noBracket = true;
+		boolean regi = false;
+		for (int i = 0; i < extract.length(); i++) {
+			if (extract.charAt(i) >= 48 && extract.charAt(i) <= 57
+					&& noBracket) {
+				if (number.equals(""))
+					number = extract.charAt(i) + "";
+				else
+					number += extract.charAt(i) + "";
+			}
+			if (extract.charAt(i) == '(') {
+				noBracket = false;
+				regi = true;
+			}
+			if (regi && extract.charAt(i) != ')'
+					&& extract.charAt(i) != '(') {
+				if (reg.equals(""))
+					reg = extract.charAt(i) + "";
+				else
+					reg += extract.charAt(i) + "";
+			}
+			//rt = reg;
+			//offset = number;
+		}
+		//reg = "";
+		//number = "";
+		//regi = false;
+		//noBracket = true;
+		//rest = getRegValue(rs) + "," + getRegValue(rt) + "," + calcOffset(offset,instruction.split(" ")[0]);
+		return number;
+	}
+
 	///// omar's work starts here
 	                                  /* Fetch*/
 	public static Instruction[] fetch()
@@ -409,9 +449,9 @@ public class Processor {
 							fetched[i].lastCycle = overHead;
 							break;
 					case "lw": fetched[i] = new Instruction("load", "load/store", regs[0], regs[1], regs[2]);
-						fetched[i].lastCycle = overHead;break;
+						fetched[i].lastCycle = overHead;fetched[i].offset = handleLoadStore(tempLine);break;
 					case "sw": fetched[i] = new Instruction("store", "load/store", regs[0], regs[1], regs[2]);
-						fetched[i].lastCycle = overHead;break;
+						fetched[i].lastCycle = overHead;fetched[i].offset = handleLoadStore(tempLine);break;
 					case "mul": fetched[i] = new Instruction("mult", "arithmetic", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
 					case "div": fetched[i] = new Instruction("div", "arithmetic", regs[0], regs[1], regs[2]);
@@ -778,13 +818,21 @@ public class Processor {
 		   return AMAT.get(0);
 
 	   }
-   }
 
+   }
+	public static void loadData(String[] data) {
+		// format: address:1
+		// .array 1,2,3,4
+		for(int i = 0; i < data.length;i++) {
+
+		}
+	}
 
 
 	/////////////////////////
 	public static void main(String[] args) 
 	{
+		System.out.println(handleLoadStore("lw $t1,4($t2)"));
 		initialize();
 		/* GUI STUFF */
 		EventQueue.invokeLater(new Runnable() {
@@ -797,79 +845,81 @@ public class Processor {
 				}
 			}
 		});
+
 		
 		/* the rest */
 		
-		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+//		BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
+//
+//		System.out.println("What is the number of caches");
+//
+////		take the number of caches first
+//		int numberOfCaches;
+//		try {
+//			numberOfCaches = Integer.parseInt(bf.readLine());
+//		} catch (Exception e)
+//		{
+//			System.out.println("Input error");
+//			e.printStackTrace();
+//			return;
+//		}
+//
+//		System.out.println("Now for every cache what are the parameters?");
+//		System.out.println("Format: Size,Line Size, Associativity");
+//
+////		use the number of caches given in the first line to create multiple caches with the given structure
+//		for (int i = 0; i < numberOfCaches; i++)
+//		{
+//			String[] line;
+//			try {
+////				input structure assumed is
+////				int,int,int NOT (int,int,int)
+////				Another format could be used which takes 5 parameters instead of 3
+//
+////				clear all spaces
+//				line = bf.readLine().replaceAll("\\s","").split(",");
+//
+//				int [] parsedLine = new int [line.length];
+//				for (int j = 0; j < line.length; j++)
+//				{
+//					parsedLine[j] = Integer.parseInt(line[j]);
+//				}
+//
+////				this will change is the 5 parameter constructor was used
+////				this adds a new cache to the processor's arraylist of caches
+//				cacheLevel.add(new Cache(parsedLine[0], parsedLine[1], parsedLine[2]));
+//
+//			} catch (IOException e) {
+//				System.out.println("Error when reading cache line");
+//				e.printStackTrace();
+//			}
+//		}
+//
+////		add the memory level after all caches are created
+//		System.out.println("What is the memory access time?");
+//		int memoryTime;
+//		try {
+//			memoryTime = Integer.parseInt(bf.readLine());
+//		} catch (Exception e) {
+//			System.out.println("Wrong input");
+//			e.printStackTrace();
+//			return;
+//		}
 
-		System.out.println("What is the number of caches");
+//		cacheLevel.add(new Cache(64*1024, 16, 1, 0, memoryTime));
+//		// TODO check if needed the commented line below
+//		// iCache = new ArrayList<Cache>(cacheLevel);
+//		Processor p = new Processor();
+//		ArrayList<String> lines = new ArrayList<String>();
+//		lines.add("add $t0,$t1,$t4");
+//        lines.add("loop: add $t0,$t1,$t4");
+//		lines.add("zeft: add $t0,$t1,$t4");
+//		System.out.println(p.compile(lines));
+//		Cache c1 = new Cache(32, 4, 1, 0, 1);
+//		Cache c2 = new Cache(64, 4, 1, 0, 4);
+//		cacheLevel.add(c1);
+//		cacheLevel.add(c2);
 
-//		take the number of caches first
-		int numberOfCaches;
-		try {
-			numberOfCaches = Integer.parseInt(bf.readLine());
-		} catch (Exception e)
-		{
-			System.out.println("Input error");
-			e.printStackTrace();
-			return;
-		}
-
-		System.out.println("Now for every cache what are the parameters?");
-		System.out.println("Format: Size,Line Size, Associativity");
-
-//		use the number of caches given in the first line to create multiple caches with the given structure
-		for (int i = 0; i < numberOfCaches; i++)
-		{
-			String[] line;
-			try {
-//				input structure assumed is
-//				int,int,int NOT (int,int,int)
-//				Another format could be used which takes 5 parameters instead of 3
-
-//				clear all spaces
-				line = bf.readLine().replaceAll("\\s","").split(",");
-
-				int [] parsedLine = new int [line.length];
-				for (int j = 0; j < line.length; j++)
-				{
-					parsedLine[j] = Integer.parseInt(line[j]);
-				}
-
-//				this will change is the 5 parameter constructor was used
-//				this adds a new cache to the processor's arraylist of caches
-				cacheLevel.add(new Cache(parsedLine[0], parsedLine[1], parsedLine[2]));
-
-			} catch (IOException e) {
-				System.out.println("Error when reading cache line");
-				e.printStackTrace();
-			}
-		}
-
-//		add the memory level after all caches are created
-		System.out.println("What is the memory access time?");
-		int memoryTime;
-		try {
-			memoryTime = Integer.parseInt(bf.readLine());
-		} catch (Exception e) {
-			System.out.println("Wrong input");
-			e.printStackTrace();
-			return;
-		}
-
-		cacheLevel.add(new Cache(64*1024, 16, 1, 0, memoryTime));
-		// TODO check if needed the commented line below
-		// iCache = new ArrayList<Cache>(cacheLevel);		
-		Processor p = new Processor();
-		ArrayList<String> lines = new ArrayList<String>();
-		lines.add("add $t0,$t1,$t4");
-        lines.add("loop: add $t0,$t1,$t4");
-		lines.add("zeft: add $t0,$t1,$t4");
-		System.out.println(p.compile(lines));
-		Cache c1 = new Cache(32, 4, 1, 0, 1);
-		Cache c2 = new Cache(64, 4, 1, 0, 4);
-		cacheLevel.add(c1);
-		cacheLevel.add(c2);
 
 	}
 
@@ -1184,6 +1234,9 @@ public class Processor {
 					System.err.println("mul " + fu);
 					scoreBoard.functionalUnits.add(fu);
 				}
+				// parse the memory filler text area
+				String[] data = memory_filler.getText().split("\\n");
+
 				init();
 				System.out.println("RAM content: " + Arrays.toString(iCache.get(iCache.size()-1).getContentOf(0)));
 
@@ -1210,3 +1263,5 @@ public class Processor {
 //	};
 //
 //}
+// TO-DO handle offset from assembler of load and store
+// TO-DO parse D-cache data from the GUI
