@@ -333,6 +333,26 @@ public class Processor {
 						fetched[i] = new Instruction("beq", "conditional branch", regs[0], regs[1], physicalAddress+"");
 						fetched[i].lastCycle = overHead;
 						break;
+						case "bne":
+							// if the content of regs[2] is present in the labels get its PC value from the hashtable
+							// else put the number directly
+
+							// NOTE THAT
+							// the "beq" instruction should depend on the offset and it is not handled...yet
+							if (Integer.parseInt(labels.get(regs[2])) % lineSize < PC)
+							{
+								taken = true;
+								physicalAddress = Integer.parseInt(labels.get(regs[2])) % lineSize;
+								//fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], labels.get(regs[2]));
+							}
+							else
+							{
+								physicalAddress = PC++;
+								//fetched[i] = new Instruction("beq", "Add", regs[0], regs[1], ((PC + 1 + Integer.parseInt(regs[2]))+""));
+							}
+							fetched[i] = new Instruction("beq", "conditional branch", regs[0], regs[1], physicalAddress+"");
+							fetched[i].lastCycle = overHead;
+							break;
 					case "load": fetched[i] = new Instruction("load", "load/store", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
 					case "store": fetched[i] = new Instruction("store", "load/store", regs[0], regs[1], regs[2]);
@@ -341,7 +361,7 @@ public class Processor {
 						fetched[i].lastCycle = overHead;break;
 					case "div": fetched[i] = new Instruction("div", "arithmetic", regs[0], regs[1], regs[2]);
 						fetched[i].lastCycle = overHead;break;
-					case "jalr":
+					case "jal":
 						ra = PC+1;
 						physicalAddress = Integer.parseInt(labels.get(label)) % lineSize;
 						jump = true;
@@ -355,14 +375,14 @@ public class Processor {
 //							register[saveTo] = PC+1;
 //							PC = Integer.parseInt(regs[1]);
 //						}
-						fetched[i] = new Instruction("jarl", "call/return", "", "", physicalAddress+"");
+						fetched[i] = new Instruction("jal", "call/return", "", "", physicalAddress+"");
 						fetched[i].lastCycle = overHead;
 						break;
 						// keep in mind here it assumes that the registers will be from 0 to 31
 						// if out of bounds it will give a null pointer exception which indicates compiling error for user
 					case "ret":
 						PC = ra;
-						fetched[i] = new Instruction("jarl", "call/return", null, null, null);
+						fetched[i] = new Instruction("ret", "call/return", null, null, null);
 						fetched[i].lastCycle = overHead;
 						break;
 					case "jmp":
