@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
+<<<<<<< HEAD
 	<name>Micro1</name>
 	<comment></comment>
 	<projects>
@@ -9,6 +10,15 @@
 			<name>org.eclipse.jdt.core.javabuilder</name>
 			<arguments>
 			</arguments>
+=======
+	<name>micro_project</name>
+	<comment/>
+	<projects/>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments/>
+>>>>>>> origin/Amal-MemoryHierarchy
 		</buildCommand>
 	</buildSpec>
 	<natures>

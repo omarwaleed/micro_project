@@ -1,37 +1,27 @@
 import java.util.*;
 
- public class Scoreboard {
+
+   
+   
+public class Scoreboard {
    static Scoreboard sb;
-   Hashtable<String,Integer > registerStatus;//contains names or registers and no  of entries  //modified
-   static Entry[] rob;  // reorder buffer is an array of entries  //modified to static
+   Hashtable<String,Integer> registerStatus;
+   Entry[] rob;  // reorder buffer is an array of entries 
    int head;  // rob head pointer
-   int tail;  // rob tail pointer
+   int tail;// rob tail pointer
+   int robSize;
 	ArrayList<FU>functionalUnits; // keep all the reservation stations
     Hashtable<Instruction,String>instructions; // each instruction is mapped to its current phase
-   static  Processor p;
-   Scoreboard(Processor pp){//modified
+
+   private Scoreboard(){
 	   registerStatus = new Hashtable<String,Integer>();
-	   instructions=new Hashtable<Instruction,String>();
-	   int size=10;
-	   rob = new Entry[size];
-	   for (int i = 0; i <size ; i++) {
-		   rob[i]=new Entry();
-		
-	}
-	   head =  0;
-	   tail=0;
+	   head = tail = 0;
        functionalUnits = new ArrayList<FU>();
-       p=pp;
-       ////
-       FU x1=new FU("load", "load1", 1);
-       FU x2=new FU("mul", "mul1", 3);
-       FU x3=new FU("add", "add1", 2);
-       functionalUnits.add(x1);
-       functionalUnits.add(x2);
-       functionalUnits.add(x3);
-       
-       
-       ////
+   }
+   public static Scoreboard getInstance() {  // use this method to get access the score board
+	   if (sb == null) 
+		   sb = new Scoreboard();
+	   return sb;
    }
    public void print_scoreboard() {//modified
 	   System.out.println("the ROP is: "+"\n");
@@ -57,14 +47,7 @@ import java.util.*;
 		
 	}
    
-   public Entry [] get_rob(){//modified
-	   return rob;
-   }
-   public static Scoreboard getInstance() {  // use this method to get access the score board
-	   if (sb == null) 
-		   sb = new Scoreboard(null);
-	   return sb;
-   }
+  
   public int increment(int i) {  // use this method to increment either the head or the tail and pass to it the int you want to increment
 	  if (i == 9) 
 		  return 0;
@@ -107,12 +90,13 @@ import java.util.*;
         rob[head] = null;
        head = increment(head);
     }
-    public static void main(String[]args) {
+
+  /*  public static void main(String[]args) {
         Scoreboard sb = Scoreboard.getInstance();
-        Entry e1 = new Entry("LD","F6");
+        Entry e1 = new Entry("LD","F6","",false);
        // System.out.println(e1);
         sb.insertROB(e1);
-        //sb.insertROB(e1);
+        sb.insertROB(e1);
         System.out.println("head: "+ sb.head + " tail " + sb.tail);
         sb.removeFromROB();
         System.out.println("after removing: head: "+ sb.head + " tail " + sb.tail);
@@ -121,6 +105,6 @@ import java.util.*;
 //        sb.insertFU("int","add1",1);
 //        System.out.println("FU FP full: "+ sb.fullFuncUnit("FP"));
 //        System.out.println("FU int full: "+ sb.fullFuncUnit("int"));
-    }
-   
+    }*/
 }
+

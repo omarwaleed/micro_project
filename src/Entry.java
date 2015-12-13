@@ -1,12 +1,9 @@
 public class Entry {
-    String type;//of the instruction is it load/add etc
-    String dest;//name of destination register
-    String value;//value of destination register 
+    String type;
+    String dest;
+    String value;
     boolean ready;
     boolean occupied;
-    public Entry(){
-    	
-    }
     public Entry(String t,String d) {
     	type = t;
     	dest = d;
@@ -14,17 +11,10 @@ public class Entry {
     	ready = false;
     	occupied = false;
     }
-    public void setValue(String v){
-    	value=v;
-    }
-    public void setReady(){
-    	ready=true;
-    	
-    }
     public void clear() { // method that clears an entry
 		type = null;
 		value = null;
-		dest = null;	
+		dest = null;
 	    ready = false;
 	    occupied = false;
 	}
@@ -36,4 +26,6 @@ public class Entry {
 				.equals(dest));
 
 	}
+
 }
+
