@@ -1,2 +1,2 @@
-add $t1,$t5,$t4
-lw $t2,0($t4)
+add $t1,$t2,$t3
+nand $t5,$t4,$t6

@@ -105,6 +105,43 @@ public class Processor {
 	 } 
 	 
 	}
+	public static String extractReg(String instruction) {
+		String extract = instruction.split(" ")[1].split(",")[1].trim();
+		String number = "";
+		String reg = "";
+		boolean noBracket = true;
+		boolean regi = false;
+		for (int i = 0; i < extract.length(); i++) {
+			if (extract.charAt(i) >= 48 && extract.charAt(i) <= 57
+					&& noBracket) {
+				if (number.equals(""))
+					number = extract.charAt(i) + "";
+				else
+					number += extract.charAt(i) + "";
+			}
+			if (extract.charAt(i) == '(') {
+				noBracket = false;
+				regi = true;
+			}
+			if (regi && extract.charAt(i) != ')'
+					&& extract.charAt(i) != '(') {
+				if (reg.equals(""))
+					reg = extract.charAt(i) + "";
+				else
+					reg += extract.charAt(i) + "";
+			}
+			//rt = reg;
+			//offset = number;
+		}
+		//reg = "";
+		//number = "";
+		//regi = false;
+		//noBracket = true;
+		//rest = getRegValue(rs) + "," + getRegValue(rt) + "," + calcOffset(offset,instruction.split(" ")[0]);
+		return reg;
+	}
+
+	
 	public static boolean isIFormat(String instruction) {
 		return (instruction
 				.matches("^\\w*\\s*\\:?\\s*(addi|lui)\\s*(\\$\\w\\d?\\,\\s*){2}\\s*\\d*$")
@@ -446,9 +483,9 @@ public class Processor {
 							fetched[i] = new Instruction("beq", regs[0], regs[1], physicalAddress+"", "conditional branch");
 							fetched[i].lastCycle = Integer.parseInt(overHead+1);
 							break;
-					case "lw": fetched[i] = new Instruction("load", regs[0], regs[1], regs[2], "load/store");
+					case "lw": fetched[i] = new Instruction("load", regs[0], extractReg(tempLine), "", "load/store");
 					fetched[i].lastCycle = Integer.parseInt(overHead+1);fetched[i].offset = handleLoadStore(tempLine);break;
-					case "sw": fetched[i] = new Instruction("store", regs[0], regs[1], regs[2], "load/store");
+					case "sw": fetched[i] = new Instruction("store", regs[0], extractReg(tempLine), "", "load/store");
 					fetched[i].lastCycle = Integer.parseInt(overHead+1);fetched[i].offset = handleLoadStore(tempLine);break;
 					case "mul": fetched[i] = new Instruction("mult", regs[0], regs[1], regs[2], "arithmetic");
 					fetched[i].lastCycle = Integer.parseInt(overHead+1);break;
@@ -878,7 +915,7 @@ public static ArrayList<Double> hitRatio(boolean D) {
 	/////////////////////////
 	public static void main(String[] args) 
 	{
-		System.out.println(handleLoadStore("lw $t1,4($t2)"));
+		System.out.println(extractReg("lw $t1,14($t2)"));
 		initialize();
 		/* GUI STUFF */
 		EventQueue.invokeLater(new Runnable() {
@@ -971,6 +1008,7 @@ public static ArrayList<Double> hitRatio(boolean D) {
 	                                       /* Tomasulo here */
        public static void Issue(int cycle) {
 		// int size=issue.size();
+    	  issue = new ArrayList<Instruction>(Arrays.asList(fetch()));
 		ArrayList<Instruction>tmp= new ArrayList<Instruction>();
 		for (int i = 0; i < issue.size(); i++) {
 			Instruction x = issue.get(i);
@@ -1000,8 +1038,9 @@ public static ArrayList<Double> hitRatio(boolean D) {
 					}
 
 					scoreBoard.registerStatus.put(x.rd, scoreBoard.tail - 1);//
-					scoreBoard.instructions.put(x, "issued :" + cycles);
-					x.lastCycle = cycles;
+					x.lastCycle=x.lastCycle+1;
+					scoreBoard.instructions.put(x, "issued :" + x.lastCycle);
+					//x.lastCycle = cycles;
 					calculateAdress.add(y);
 					tmp.add(x);
 					y.i = x;
@@ -1033,8 +1072,9 @@ public static ArrayList<Double> hitRatio(boolean D) {
 								.get(y.vk));
 
 					}
-					scoreBoard.instructions.put(x, "issued :" + cycles);
-					x.lastCycle = cycles;
+					x.lastCycle=x.lastCycle+1;
+					scoreBoard.instructions.put(x, "issued :" + x.lastCycle);
+					//x.lastCycle = cycles;
 					calculateAdress.add(y);
 					tmp.add(x);
 					// issue.remove(x);
@@ -1056,8 +1096,9 @@ public static ArrayList<Double> hitRatio(boolean D) {
 
 					}
 					scoreBoard.registerStatus.put(x.rd, scoreBoard.tail - 1);//
-					scoreBoard.instructions.put(x, "issued :" + cycles);
-					x.lastCycle = cycles;
+					x.lastCycle=x.lastCycle+1;
+					scoreBoard.instructions.put(x, "issued :" + x.lastCycle);
+					//x.lastCycle = cycles;
 					Excute.add(y);
 					tmp.add(x);
 					// issue.remove(x);
@@ -1086,9 +1127,10 @@ public static ArrayList<Double> hitRatio(boolean D) {
 								.get(y.vk));
 
 					}
-					scoreBoard.instructions.put(x, "issued :" + cycles);
+					x.lastCycle=x.lastCycle+1;
+					scoreBoard.instructions.put(x, "issued :" + x.lastCycle);
 					// System.out.println("before excution");
-					x.lastCycle = cycles;
+					//x.lastCycle = cycles;
 					// scoreBoard.print_scoreboard();
 					Excute.add(y);
 					tmp.add(x);
@@ -1119,8 +1161,9 @@ public static ArrayList<Double> hitRatio(boolean D) {
 
 					}
 					scoreBoard.registerStatus.put(x.rd, scoreBoard.tail - 1);//
-					scoreBoard.instructions.put(x, "issued :" + cycles);
-					x.lastCycle = cycles;
+					x.lastCycle=x.lastCycle+1;
+					scoreBoard.instructions.put(x, "issued :" + x.lastCycle);
+					//x.lastCycle = cycles;
 					// System.out.println("before excution");
 					// scoreBoard.print_scoreboard();
 					Excute.add(y);
@@ -1937,7 +1980,9 @@ public static ArrayList<Double> hitRatio(boolean D) {
 				String[] data = memory_filler.getText().split("\\n");
 
 				init();
-				System.out.println("RAM content: " + Arrays.toString(iCache.get(iCache.size()-1).getContentOf(0)));
+				PC = 0;
+				Issue(0);
+				//System.out.println("RAM content: " + Arrays.toString(iCache.get(iCache.size()-1).getContentOf(0)));
 
 			}
 		});
