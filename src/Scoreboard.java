@@ -5,13 +5,13 @@ public class Scoreboard {
    Hashtable<String,Entry> registerStatus;
    Entry[] rob;  // reorder buffer is an array of entries 
    int head;  // rob head pointer
-   int tail;  // rob tail pointer
+   int tail;// rob tail pointer
+   int robSize;
 	ArrayList<FU>functionalUnits; // keep all the reservation stations
     Hashtable<Instruction,String>instructions; // each instruction is mapped to its current phase
 
    private Scoreboard(){
 	   registerStatus = new Hashtable<String,Entry>();
-	   rob = new Entry[10];
 	   head = tail = 0;
        functionalUnits = new ArrayList<FU>();
    }

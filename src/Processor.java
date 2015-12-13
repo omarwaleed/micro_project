@@ -45,6 +45,7 @@ public class Processor {
 	static int cycles = 0;
 	static int lineSize = 4;
 	static int ra = 0;
+
 	private static JTextField addi_number;
 	private static JTextField addd_number;
 	private static JTextField cache_levels_field;
@@ -64,6 +65,9 @@ public class Processor {
 	private static JTextField load_cycles;
 	private static JTextField store_cycles;
 	private static JTextField memory_size_field;
+	static int nWay;
+	static int branchNumber;
+	static Scoreboard scoreBoard;
 //	get the value inside a single register
 	public int getRegister(int reg) 
 	{
@@ -105,6 +109,9 @@ public class Processor {
 	 getLabels(lines);
 	 if (validateLabels(lines) && compile(lines)) {
 	    Processor.lines = lines;
+		System.out.println(Arrays.toString(lines.toArray()));
+		branchNumber = countBranch(lines);
+		 loadProgram(lines);
 	 } else {
 	 System.out.println("your code contains errors!");
 	 }
@@ -271,18 +278,27 @@ public class Processor {
 		}
 		return count;
 	}
-	public static void LoadProgram(ArrayList<String> lines) { // loads the program to the main memory
+	public static void loadProgram(ArrayList<String> lines) { // loads the program to the main memory
 		int address = 0;
 		int jump = 1;
-		for(int i = 0; i < lines.size(); i=lineSize*jump) {
+		if (lines.size() < lineSize) {
 			String[] chunck = new String[lineSize];
-			for(int j = 0; j < lineSize; j++) { // divide instructions to blocks
-				chunck[j] = lines.get(i+j);
+			for(int i = 0; i < lines.size();i++) {
+				chunck[i] = lines.get(i);
 			}
-			   if (iCache.get(iCache.size()-1).isMainMemory())
 			iCache.get(iCache.size()-1).write(address,chunck);
-			address++;
-			jump++;
+		}
+		else {
+			for (int i = 0; i < lines.size(); i = lineSize * jump) {
+				String[] chunck = new String[lineSize];
+				for (int j = 0; j < lineSize && j < lines.size(); j++) { // divide instructions to blocks
+					chunck[j] = lines.get(i + j);
+				}
+				if (iCache.get(iCache.size() - 1).isMainMemory())
+					iCache.get(iCache.size() - 1).write(address, chunck);
+				address++;
+				jump++;
+			}
 		}
 	}
 	///// omar's work starts here
@@ -295,7 +311,7 @@ public class Processor {
 		
 		
 		// instruction(name, type, rd, rs, rt)
-		Instruction[] fetched = new Instruction[4];
+		Instruction[] fetched = new Instruction[nWay];
 		for (int i = 0; i < fetched.length; i++) 
 		{
 			//	fetch every instruction from lines from pc to pc + 3
@@ -1094,6 +1110,7 @@ public class Processor {
 				//File input = new File("src/input.txt", code_area.getText());
 				try
 				{
+					// code area input to the text file
 					Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("src/input.txt"), StandardCharsets.UTF_8));
 					writer.write(code_area.getText());
 					writer.flush();
@@ -1101,15 +1118,15 @@ public class Processor {
 				{
 					e.printStackTrace();
 				}
-				
+				// memory hierarchy inputs
 				String [] mem_in = memory_input.getText().split("\\n");
 //				System.out.println(Arrays.toString(mem_in));
 				int number_of_caches = Integer.parseInt(mem_in[0]);
 				int line_size = Integer.parseInt(line_size_field.getText());
 				for (int i = 1; i <= number_of_caches; i++) 
 				{
-					String[] sub_line = mem_in[i].split(":");
-					String[] s_m = sub_line[0].split(","); 
+					String[] sub_line = mem_in[i].split(":"); //sub_line[1] = write policy 0 through 1 back
+					String[] s_m = sub_line[0].split(","); //S = s_m[0],M = s_m[1],T = s_m[2]
 					cacheLevel.add(new Cache(Integer.parseInt(s_m[0]), line_size, Integer.parseInt(s_m[1])));
 					cacheLevel.get(cacheLevel.size()-1).setWritePolicy(Integer.parseInt(sub_line[1]));
 					cacheLevel.get(cacheLevel.size()-1).setCycles(Integer.parseInt(s_m[2]));
@@ -1118,9 +1135,58 @@ public class Processor {
 					iCache.get(iCache.size()-1).setWritePolicy(Integer.parseInt(sub_line[1]));
 
 				}
-				cacheLevel.add(new Cache(Integer.parseInt(memory_size_field.getText()),line_size, 1));
+				cacheLevel.add(new Cache(Integer.parseInt(memory_size_field.getText()),line_size, (Integer.parseInt(memory_size_field.getText())/line_size)));
+				cacheLevel.get(cacheLevel.size()-1).setCycles(Integer.parseInt(memory_access_time_field.getText()));
+				iCache.add(new Cache(Integer.parseInt(memory_size_field.getText()),line_size, (Integer.parseInt(memory_size_field.getText())/line_size)));
+				iCache.get(iCache.size()-1).setCycles(Integer.parseInt(memory_access_time_field.getText()));
 				System.out.println(Arrays.toString(cacheLevel.toArray()));
-				
+
+				// Scoreboard parameters
+
+				//rob entry number
+				scoreBoard = Scoreboard.getInstance();
+				scoreBoard.robSize = Integer.parseInt(rob_entries_field.getText());
+				scoreBoard.rob = new Entry[scoreBoard.robSize];
+				// number of ways for the processor
+				nWay = Integer.parseInt(n_ways_field.getText());
+				// add the add FU
+				int addNumber = Integer.parseInt(addi_number.getText());
+				for(int i = 0; i < addNumber; i++) {
+					FU fu  = new FU("add","Int",Integer.parseInt(addi_cycles.getText()));
+					System.err.println("add fu: " + fu);
+					scoreBoard.functionalUnits.add(fu);
+				}
+				// add the addd FU
+				int adddNumber = Integer.parseInt(addd_number.getText());
+				for(int i = 0; i < adddNumber; i++) {
+					FU fu  = new FU("addd","FP",Integer.parseInt(addd_cycles.getText()));
+					System.err.println("addd " + fu);
+					scoreBoard.functionalUnits.add(fu);
+				}
+				// add the load FU
+				int loadNumber = Integer.parseInt(load_number.getText());
+				for(int i = 0; i < loadNumber; i++) {
+					FU fu  = new FU("load","load",Integer.parseInt(load_cycles.getText()));
+					System.err.println("load: " + fu);
+					scoreBoard.functionalUnits.add(fu);
+				}
+				// add the store FU
+				int storeNumber = Integer.parseInt(store_number.getText());
+				for(int i = 0; i < storeNumber; i++) {
+					FU fu  = new FU("store","store",Integer.parseInt(store_cycles.getText()));
+					System.err.println("store " + fu);
+					scoreBoard.functionalUnits.add(fu);
+				}
+				// add the mul FU
+				int mulNumber = Integer.parseInt(multd_number.getText());
+				for(int i = 0; i < mulNumber; i++) {
+					FU fu  = new FU("multd","Int",Integer.parseInt(multd_cycles.getText()));
+					System.err.println("mul " + fu);
+					scoreBoard.functionalUnits.add(fu);
+				}
+				init();
+				System.out.println("RAM content: " + Arrays.toString(iCache.get(iCache.size()-1).getContentOf(0)));
+
 			}
 		});
 		btnRunCode.setBounds(586, 162, 97, 25);
