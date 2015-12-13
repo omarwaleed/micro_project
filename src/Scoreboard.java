@@ -18,7 +18,8 @@ import java.util.*;
 		   rob[i]=new Entry();
 		
 	}
-	   head = tail = 0;
+	   head =  0;
+	   tail=0;
        functionalUnits = new ArrayList<FU>();
        p=pp;
        ////
@@ -85,6 +86,7 @@ import java.util.*;
 	  return null;
 	  
   }
+ 
   public void insertFU(String type, String name, int latency,int d) { //tested
       FU fu = new FU(type,name,latency);
       functionalUnits.add(fu);
@@ -110,7 +112,7 @@ import java.util.*;
         Entry e1 = new Entry("LD","F6");
        // System.out.println(e1);
         sb.insertROB(e1);
-        sb.insertROB(e1);
+        //sb.insertROB(e1);
         System.out.println("head: "+ sb.head + " tail " + sb.tail);
         sb.removeFromROB();
         System.out.println("after removing: head: "+ sb.head + " tail " + sb.tail);

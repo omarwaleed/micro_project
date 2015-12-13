@@ -25,11 +25,13 @@ public class Processor {
 
 	public Processor() {
 		scoreBoard = new Scoreboard(this);
+		
 	}
 
 	// ////////////////////////tomosolo
 	public static void Issue(int cycle) {
 		// int size=issue.size();
+		ArrayList<Instruction>tmp= new ArrayList<Instruction>();
 		for (int i = 0; i < issue.size(); i++) {
 			Instruction x = issue.get(i);
 			System.out.println("instruction name   " + x.name);
@@ -58,6 +60,7 @@ public class Processor {
 					scoreBoard.instructions.put(x, "issued :" + cycles);
 					x.lastCycle = cycles;
 					calculateAdress.add(y);
+					tmp.add(x);
 					y.i = x;
 					// issue.remove(x);
 
@@ -90,6 +93,7 @@ public class Processor {
 					scoreBoard.instructions.put(x, "issued :" + cycles);
 					x.lastCycle = cycles;
 					calculateAdress.add(y);
+					tmp.add(x);
 					// issue.remove(x);
 					y.i = x;
 				} else if (x.name.contains("addi")) {// add immediate
@@ -112,6 +116,7 @@ public class Processor {
 					scoreBoard.instructions.put(x, "issued :" + cycles);
 					x.lastCycle = cycles;
 					Excute.add(y);
+					tmp.add(x);
 					// issue.remove(x);
 					y.i = x;
 
@@ -143,6 +148,7 @@ public class Processor {
 					x.lastCycle = cycles;
 					// scoreBoard.print_scoreboard();
 					Excute.add(y);
+					tmp.add(x);
 					// issue.remove(x);
 					y.i = x;
 
@@ -175,8 +181,12 @@ public class Processor {
 					// System.out.println("before excution");
 					// scoreBoard.print_scoreboard();
 					Excute.add(y);
+					tmp.add(x);
 					// issue.remove(x);
 					y.i = x;
+					 
+					 //scoreBoard.tail = scoreBoard.tail++;
+					System.out.println("i will increment the tail " +scoreBoard.tail);
 
 				}
 
@@ -186,10 +196,15 @@ public class Processor {
 				System.out.println(scoreBoard.toString());
 				// if one instruction did not find a place
 				// ++cycles;
-				calculate_address(cycle + 1);// all instruction after him should
+				for (int j = 0; j < tmp.size(); j++) {
+					issue.remove(tmp.get(j));
+					}
+				tmp.clear();
+				if(calculateAdress.size()>0)
+					calculate_address(cycle + 1);// all instruction after him should
 												// be stuck as the issue is in
-												// order
-				Excute(cycle + 1);
+				if(Excute.size()>0)								// order
+					Excute(cycle + 1);
 				return;
 
 			}
@@ -198,14 +213,22 @@ public class Processor {
 		++cycles;
 		System.out.println("after issueing");
 		System.out.println(scoreBoard.toString());
-		calculate_address(cycle + 1);
+		for (int j = 0; j < tmp.size(); j++) {
+			issue.remove(tmp.get(j));
+			}
+		tmp.clear();
+		if(calculateAdress.size()>0)
+			calculate_address(cycle + 1);
+		
 		System.out.println("Excute size is " + Excute.size());
-		Excute(cycle + 1);
+		if(Excute.size()>0)	
+			Excute(cycle + 1);
 
 	}
 
-	// /end of issue
+	//////////////////////////////////////////////////////////////////////////////// /end of issue
 	public static void calculate_address(int cycle) {
+		ArrayList <FU>tmp=new ArrayList<FU>();
 		System.out.println("iam calculating add");
 		for (int i = 0; i < calculateAdress.size(); i++) {
 			FU x = calculateAdress.get(i);
@@ -220,6 +243,7 @@ public class Processor {
 									+ cycle);
 					x.i.lastCycle = cycle + 1;
 					Excute.add(x);
+					tmp.add(x);
 					// calculateAdress.remove(x);
 				} else {// it depends on another instruction
 					int entry_no = Integer.parseInt(x.qj);
@@ -229,6 +253,7 @@ public class Processor {
 								+ Integer.parseInt(entry.value);
 						x.a = String.valueOf(add);
 						Excute.add(x);
+						tmp.add(x);
 						scoreBoard.instructions.put(x.i,
 								scoreBoard.instructions.get(x.i)
 										+ ", CalcAdd :" + cycle);
@@ -243,6 +268,7 @@ public class Processor {
 					int add = Integer.parseInt(x.a) + registers.get(x.vk);
 					x.a = String.valueOf(add);
 					Excute.add(x);
+					tmp.add(x);
 					scoreBoard.instructions.put(x.i,
 							scoreBoard.instructions.get(x.i) + ", CalcAdd :"
 									+ cycle);
@@ -256,6 +282,7 @@ public class Processor {
 								+ Integer.parseInt(entry.value);
 						x.a = String.valueOf(add);
 						Excute.add(x);
+						tmp.add(x);
 						scoreBoard.instructions.put(x.i,
 								scoreBoard.instructions.get(x.i)
 										+ ", CalcAdd :" + cycle);
@@ -268,11 +295,18 @@ public class Processor {
 			}
 
 		}
+		///////////////////////////////////////end of calculate address 
 		// Excute(cycle+1);
+		for (int i = 0; i < tmp.size(); i++) {
+			calculateAdress.remove(tmp.get(i));
+		}
+		tmp.clear();
 
 	}
 
 	public static void Excute(int cycle) {
+		ArrayList <FU>tmp=new ArrayList<FU>();
+		System.err.println("excute size  "+Excute.size());
 		for (int i = 0; i < Excute.size(); i++) {
 			FU y = (FU) Excute.get(i);
 			if (y.busy) {
@@ -285,6 +319,8 @@ public class Processor {
 					scoreBoard.instructions.put(y.i,
 							scoreBoard.instructions.get(y.i) + ",Excuted :"
 									+ y.i.lastCycle);
+						Writebs.add(y);
+						tmp.add(y);
 					// Excute.remove(i);
 				} else if (y.type.contains("store")) {
 					if (y.qk == null) {
@@ -299,6 +335,8 @@ public class Processor {
 						scoreBoard.instructions.put(y.i,
 								scoreBoard.instructions.get(y.i) + ",Excuted :"
 										+ y.i.lastCycle);
+						Writebs.add(y);
+						tmp.add(y);
 						// Excute.remove(i);
 					} else {// waiting for another one
 						int entry_no = Integer.parseInt(y.qk);
@@ -309,6 +347,8 @@ public class Processor {
 							scoreBoard.instructions.put(y.i,
 									scoreBoard.instructions.get(y.i)
 											+ ",Excuted :" + y.i.lastCycle);
+							Writebs.add(y);
+							tmp.add(y);
 							// Excute.remove(i);
 
 						}
@@ -322,6 +362,9 @@ public class Processor {
 						scoreBoard.instructions.put(y.i,
 								scoreBoard.instructions.get(y.i) + ",Excuted :"
 										+ y.i.lastCycle);
+						Writebs.add(y);
+						tmp.add(y);
+
 						// Excute.remove(i);
 					} else {
 						int entry_no = Integer.parseInt(y.qj);
@@ -332,6 +375,8 @@ public class Processor {
 							scoreBoard.instructions.put(y.i,
 									scoreBoard.instructions.get(y.i)
 											+ ",Excuted :" + y.i.lastCycle);
+							Writebs.add(y);
+							tmp.add(y);
 
 						}
 
@@ -347,6 +392,9 @@ public class Processor {
 						scoreBoard.instructions.put(y.i,
 								scoreBoard.instructions.get(y.i) + ",Excuted :"
 										+ y.i.lastCycle);
+						Writebs.add(y);
+						tmp.add(y);
+
 						// Excute.remove(i);
 					} else if (y.qj != null && y.qk != null) {
 
@@ -360,6 +408,8 @@ public class Processor {
 							scoreBoard.instructions.put(y.i,
 									scoreBoard.instructions.get(y.i)
 											+ ",Excuted :" + y.i.lastCycle);
+							Writebs.add(y);
+							tmp.add(y);
 							// Excute.remove(i);
 
 						}
@@ -373,6 +423,9 @@ public class Processor {
 							scoreBoard.instructions.put(y.i,
 									scoreBoard.instructions.get(y.i)
 											+ ",Excuted :" + y.i.lastCycle);
+							Writebs.add(y);
+							tmp.add(y);
+
 							// Excute.remove(i);
 
 						}
@@ -387,6 +440,8 @@ public class Processor {
 							scoreBoard.instructions.put(y.i,
 									scoreBoard.instructions.get(y.i)
 											+ ",Excuted :" + y.i.lastCycle);
+							Writebs.add(y);
+							tmp.add(y);
 							// Excute.remove(i);
 
 						}
@@ -401,7 +456,7 @@ public class Processor {
 									|| (val != 0 && Integer.valueOf(y.i.offset) < 0)) {
 								PC = y.i.PC + 1 + Integer.parseInt(y.i.offset);
 								System.out.println("should flush");
-								issue.clear();
+								issue.clear();//la2ny lazm amsh elly ablya bas
 								return;
 							}
 						}
@@ -413,33 +468,40 @@ public class Processor {
 			}
 
 		}
-
+		for (int i = 0; i < tmp.size(); i++) {
+			Excute.remove(tmp.get(i));
+		}
+		tmp.clear();
+		System.err.println("write back size is "+Writebs.size());
+		if(Writebs.size()>0)
+		writeBack(0);
 	}
 
 	// //end of excute
 	// //////////////////////////////////////////////////weam
 	// start of writeback
-	public static void writeBack() {
-		/*
-		 * Instruction b=new Instruction("mul","F2","R1","R2","mul","2");
-		 * b.set_pc(1); Instruction a=new
-		 * Instruction("mul","F1","F4","F4","mul",null);
-		 * scoreBoard.instructions.put(b,"Issued");
-		 */
+	public static void writeBack(int cycle) {
+		System.err.println("iam in in the wb "+Writebs.size());
+		scoreBoard.print_scoreboard();
+		ArrayList <FU>delete=new ArrayList<FU>();
 		for (int i = 0; i < Writebs.size(); i++) {
+			System.err.println(" iam trying to write  hhhh");
 			FU temp = (FU) Writebs.get(i);
+			System.out.println("dakhlt fel loopp  "+temp);
 			int robentry = temp.dest;
 			Entry ent = scoreBoard.rob[robentry];
 			Instruction ins = temp.i;
-			if (ins != null) {
+			if (ins != null && ent!=null &&temp!=null) {
+				//System.out.println("ana hena");
 				String status = scoreBoard.instructions.get(ins);
-				if (status != null && status.equals("Excuted") && !ent.ready) {
+				if (status != null && !ent.ready) {
+					//System.out.println("anaa hena");
 					ent.ready = true; // make the entry in rob ready
 					temp.wb(); // put the value of execution in the value column
 								// in rob
 					// check dependencies on that rob so I will loop on the
 					// arraylist of functions and check if qj or qk = robentry
-					for (int j = 0; j < Excute.size(); j++) {
+					/*for (int j = 0; j < Excute.size(); j++) {
 						// //// mmkn ykon felly fo2 moshkla
 						FU temp2 = (FU) Excute.get(j);
 						if (temp2.qj != null
@@ -457,11 +519,18 @@ public class Processor {
 						}
 						calculate_address(4);
 						Excute(5);
-						// Issue(); // lazem issue bas msh 3rfa eh el
+						Issue(1); // lazem issue bas msh 3rfa eh el
 						// instruction
-					}
+					}*/
+					
 					// change in instructions hashtable to writeback
-					status = "WrittenBack";
+					if(cycle>temp.i.lastCycle+1){
+						status = status+" , "+"WrittenBack"+cycle;
+					}
+					else {
+						temp.i.lastCycle=temp.i.lastCycle+1;
+						status = status+" , "+"WrittenBack"+temp.i.lastCycle;
+					}
 					scoreBoard.instructions.put(ins, status);
 					FU f = new FU(temp.type, temp.name, temp.latency); // temporary
 																		// FU
@@ -489,58 +558,101 @@ public class Processor {
 					f.a = temp.a;
 					f.dest = temp.dest;
 					f.i = temp.i;
-
+					
+					
+//					calculate_address(4);
+//					Excute(5);
+//					Issue(1);
+					delete.add(temp);
 					commits.add(f); // this
+					System.err.println("lololololyyy i added to commit");
 					// clear the FU from the list
 
 					System.out.println("For writing");
 
 					temp.clearFU();
-					scoreBoard.print_scoreboard();
+					//scoreBoard.print_scoreboard();
+				///Writebs.remove(i);
 					System.out.println("Ned5ol 3la el commit b2a");
-					commit();
+//					if(commits.size()>0)
+//						commit(0);
 
 				}
 			}
 		}
+		for (int i = 0; i <delete.size(); i++) {
+			Writebs.remove(delete.get(i));
+			}
+		delete.clear();
+		calculate_address(4);
+		Excute(5);
+		Issue(1);
+		if(commits.size()>0)
+			commit(0);
 	}
 
 	// end of writeback
 	// start of commit
-	public static void commit() {
-		for (int i = 0; i < commits.size(); i++) {
-			FU temp = (FU) commits.get(i);
-			int robentry = temp.dest;
-			// System.out.println(temp.toString());
-			Entry ent = scoreBoard.rob[robentry];
-			Instruction ins = temp.i;
+		public static void commit( int cycle ) {
+			//for (int i = 0; i < commits.size(); i++) {
+			FU temp =null;
+			boolean off =false;
+			if(commits.size() > 0){
+				System.err.println("commit ,size is greater than o "+commits.size());
+				//FU temp = (FU) commits.get(i);
+				int headpointer = scoreBoard.head;  // this is what is the head is pointing at .
+				String dd = scoreBoard.rob[headpointer].dest; // this is the destination of the entry corresponding the head pointer
+				
+				for(int i =0 ; i<commits.size();i++){
+				 temp= (FU) commits.get(i);
+				 System.out.println("in commit :temp is :"+temp);
+				if(temp!=null){
+				int robentry = temp.dest;
+				// System.out.println(temp.toString());
+				Entry ent = scoreBoard.rob[robentry];
+				Instruction ins = temp.i;
 
-			// System.out.println(ent.dest);
-			String status = scoreBoard.instructions.get(ins);
-			if (status.equals("WrittenBack") && scoreBoard.head == robentry) {
-				System.out.println(ent.dest);
-				scoreBoard.registerStatus.put(ent.dest, 0); // clear the Rob
-															// number from
-															// register status
-				ent.clear(); // clear entry from ROB
+				// System.out.println(ent.dest);
+				String status = scoreBoard.instructions.get(ins);
+				System.err.println("header pointer is "+headpointer+" rob entry "+robentry);
+				if (headpointer == robentry) {
+					//System.out.println(ent.dest);
+					scoreBoard.registerStatus.put(ent.dest, 0); // clear the Rob
+																// number from
+																// register status
+					ent.clear(); // clear entry from ROB
+					if(cycle>temp.i.lastCycle+1){
+						status =status+" , "+" Committed "+cycle; // change the status
+					}
+					else {
+						temp.i.lastCycle=temp.i.lastCycle+1;
+						status =status+" , "+" Committed "+temp.i.lastCycle;
+					}
+						
+					scoreBoard.instructions.put(ins, status);
+					scoreBoard.head = scoreBoard.increment(scoreBoard.head); // increment head pointer
+					commits.remove(temp);
+					off=true;
+					System.err.println("i can commit now ");
+					break;
 
-				status = "Committed"; // change the status
-				scoreBoard.instructions.put(ins, status);
-				scoreBoard.increment(scoreBoard.head); // increment head pointer
-				commits.remove(temp);
-
-			} else if (status.equals("WrittenBack")
-					&& scoreBoard.head != robentry) {
-				commits.add(temp); // arraylist commits has all commits which
-									// were not able to enter the commit stage
-									// in time because head was delayed
+				} 
+				
 			}
-			scoreBoard.print_scoreboard();
+				}
+				scoreBoard.print_scoreboard();
+				if(off){
+				if(commits.size()>0)
+					commit(temp.i.lastCycle+1);
+				if(issue.size()>0)
+					Issue(temp.i.lastCycle+1);
+				}
+			
 		}
 
-	}
+		}
 
-	// end of commit
+		// end of commit
 	// /////////////////////////////////weam
 
 	// //method that take block no in a cache and return block No in MM
@@ -812,15 +924,16 @@ public class Processor {
 		registers.put("F4", 4);
 		registers.put("F5", 5);
 		Processor p = new Processor();
-		Instruction b = new Instruction("nand", "F0", "F0", "F1", "add", "2");
+		Instruction b = new Instruction("add", "F0", "F1", "F2", "add", "2");
 		b.set_pc(1);
-		Instruction a = new Instruction("mul", "F1", "F4", "F4", "mul", null);
-		Instruction c = new Instruction("load", "F3", "F5", "F3", "load", "0");
+		Instruction a = new Instruction("mul", "F2", "F4", "F5", "mul", null);
+		//Instruction c = new Instruction("load", "F3", "F5", "F3", "load", "0");
 		ArrayList<Instruction> list = new ArrayList<Instruction>();
+		issue.add(b);
 		issue.add(a);
-		issue.add(c);
 		// list.add(c);
 		Issue(1);
+		System.out.println("before last print ");
 		scoreBoard.print_scoreboard();
 		System.out.println();
 
